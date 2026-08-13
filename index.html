@@ -324,6 +324,52 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
   transition:opacity .25s ease
 }
 
+/* --- Sprint 3 : regroupement par groupe --- */
+.grp{margin:20px 0 9px}
+.grp-t{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:7px}
+.grp-nom{font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.grp-mont{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:600;flex:none}
+.grp .jauge-r{height:6px}
+
+/* --- Sprint 3 : avis (nouveau cycle, rappel de sauvegarde) --- */
+.avis{
+  background:var(--gold-soft);border:1px solid rgba(242,169,59,.35);
+  border-radius:var(--r);padding:13px 14px;margin-bottom:12px
+}
+.avis-t{font-weight:800;font-size:15px;color:var(--gold);margin-bottom:3px}
+.avis-p{margin:0 0 10px;font-size:13.5px;color:var(--muted);line-height:1.4}
+.avis .btn{margin-top:0}
+.avis .row-btns{margin-top:0}
+
+/* --- Sprint 3 : historique --- */
+.cyc{
+  display:block;width:100%;text-align:left;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r);padding:13px;margin-bottom:8px
+}
+.cyc:active{transform:translateY(1px)}
+.cyc-h{display:flex;align-items:center;gap:8px}
+.cyc-per{font-weight:700;font-size:15px;flex:1;min-width:0}
+.cyc-g{display:flex;gap:16px;margin-top:9px}
+.cyc-g div{font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+.cyc-g b{display:block;color:var(--text);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cyc-g b.c-rouge{color:var(--red)}
+.cyc-g b.c-vert{color:var(--green)}
+
+/* --- Sprint 3 : lignes en lecture seule --- */
+.ro{padding:11px 0;border-bottom:1px solid var(--line)}
+.ro:last-child{border-bottom:0}
+.ro-h{display:flex;align-items:center;gap:10px}
+.ro-h .nom{flex:1;min-width:0;font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ro-m{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:14.5px;flex:none}
+.ro-m small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
+.ro-b{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:6px;font-size:12px;font-variant-numeric:tabular-nums}
+.ro .jauge-r{margin-top:7px}
+.ro .ico{width:30px;height:30px;font-size:15px}
+.lecture{
+  display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:3px 9px;font-weight:700
+}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -342,10 +388,12 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 <script>
 "use strict";
 /* ==============================================================
-   MonDjai — Sprint 2
+   MonDjai — Sprint 3
    (Sprint 1 : jour de paie, revenus, rubriques, répartition)
    (Sprint 2 : saisie de dépense en 3 taps, tableau de bord à
     jauges, détail des dépenses par rubrique)
+   (Sprint 3 : cycles budgétaires, historique, sauvegarde et
+    restauration JSON, affichage par groupes)
    Tout est local : aucun appel réseau, aucune bibliothèque.
    ============================================================== */
 
@@ -438,11 +486,34 @@ function dateCourte(s){
   var d = deIso(s);
   return d.getDate() + " " + MOIS[d.getMonth()].slice(0,4) + ".";
 }
-/* Prochaine paie : le jour choisi, ramené au dernier jour si le mois est plus court */
-function paieDuMois(annee, mois){
+function dateComplete(s){
+  var d = deIso(s);
+  return d.getDate() + " " + MOIS[d.getMonth()] + " " + d.getFullYear();
+}
+/* Prochaine paie : le jour choisi, ramené au dernier jour si le mois est plus court.
+   Le jour peut être passé en paramètre (utile avant que l'état ne soit chargé). */
+function paieDuMois(annee, mois, jourOpt){
   var dernier = new Date(annee, mois + 1, 0).getDate();
-  var j = (S.jourSalaire === "dernier") ? dernier : Math.min(Number(S.jourSalaire) || 1, dernier);
+  var js = (jourOpt === undefined) ? S.jourSalaire : jourOpt;
+  var j = (js === "dernier") ? dernier : Math.min(Number(js) || 1, dernier);
   return new Date(annee, mois, j);
+}
+/* Sprint 3 — date de paie la plus récente à ce jour : début théorique du cycle */
+function debutCycleTheorique(jourOpt, refIso){
+  var t = refIso ? deIso(refIso) : new Date();
+  t.setHours(0,0,0,0);
+  var js = (jourOpt === undefined) ? S.jourSalaire : jourOpt;
+  if(js === null || js === undefined) return iso(t);
+  var c = paieDuMois(t.getFullYear(), t.getMonth(), js);
+  if(c.getTime() > t.getTime()) c = paieDuMois(t.getFullYear(), t.getMonth() - 1, js);
+  return iso(c);
+}
+/* Première date de paie strictement postérieure à une date donnée */
+function paieApres(dateIso){
+  var d = deIso(dateIso); d.setHours(0,0,0,0);
+  var c = paieDuMois(d.getFullYear(), d.getMonth());
+  if(c.getTime() <= d.getTime()) c = paieDuMois(d.getFullYear(), d.getMonth() + 1);
+  return c;
 }
 function prochainePaie(){
   if(S.jourSalaire === null || S.jourSalaire === undefined) return null;
@@ -459,14 +530,21 @@ function joursAvantPaie(){
 }
 function motJours(n){ return n + (n > 1 ? " jours" : " jour"); }
 
-/* ---------- état ---------- */
+/* ==============================================================
+   ÉTAT
+   S.revenus, S.rubriques[].montant et S.depenses décrivent
+   TOUJOURS le cycle en cours. Les cycles clos sont recopiés
+   dans S.cycles, du plus récent au plus ancien.
+   ============================================================== */
 var S = charger();
 var vue = S.onboarded ? "dashboard" : "revenus";
-var rubOuverte = null; /* id de la rubrique affichée en détail */
+var rubOuverte = null;    /* id de la rubrique affichée en détail */
+var cycleOuvert = null;   /* id du cycle archivé consulté */
+var brouillonCycle = null;/* nouveau cycle en préparation */
 
 function neuf(){
   return {
-    version: 3,
+    version: 4,
     onboarded: false,
     jourSalaire: null,
     revenus: [{id: uid(), libelle: "Salaire net", montant: 0}],
@@ -474,20 +552,98 @@ function neuf(){
       return {id:r.id, nom:r.nom, icone:r.icone, couleur:r.couleur, groupe:r.groupe,
               active:!!r.defaut, montant:0, perso:false};
     }),
-    depenses: []
+    depenses: [],
+    cycleId: uid(),
+    cycleDebut: aujourdhui(),
+    cycles: [],
+    rappelSauvegarde: false,
+    derniereSauvegarde: null
   };
 }
+
+/* Remise en forme et migration silencieuse.
+   Sert au chargement local ET à la restauration d'un fichier.
+   Renvoie null si le contenu n'a rien d'un état MonDjai. */
+function normaliser(o){
+  if(!o || typeof o !== "object") return null;
+  if(!Array.isArray(o.rubriques) || !Array.isArray(o.revenus)) return null;
+
+  var rubs = o.rubriques.filter(function(r){
+    return r && typeof r.id === "string" && typeof r.nom === "string";
+  }).map(function(r){
+    return {
+      id: r.id, nom: r.nom,
+      icone: r.icone || "\uD83D\uDCB8",
+      couleur: r.couleur || COULEURS[0],
+      groupe: r.groupe || "Vie courante",
+      active: !!r.active,
+      montant: Number(r.montant) || 0,
+      perso: !!r.perso
+    };
+  });
+  if(!rubs.length) return null;
+  o.rubriques = rubs;
+
+  o.revenus = o.revenus.filter(function(r){ return r && typeof r === "object"; })
+    .map(function(r){
+      return {id: r.id || uid(), libelle: String(r.libelle || ""), montant: Number(r.montant) || 0};
+    });
+  if(!o.revenus.length) o.revenus = [{id: uid(), libelle: "Salaire net", montant: 0}];
+
+  o.depenses = (Array.isArray(o.depenses) ? o.depenses : []).filter(function(d){
+    return d && typeof d.rubrique === "string" && Number(d.montant) > 0;
+  }).map(function(d){
+    return {id: d.id || uid(), rubrique: d.rubrique, montant: Number(d.montant) || 0,
+            libelle: String(d.libelle || ""), date: d.date || aujourdhui(), cree: Number(d.cree) || 0};
+  });
+
+  if(o.jourSalaire !== "dernier"){
+    var j = Number(o.jourSalaire);
+    o.jourSalaire = (j >= 1 && j <= 31) ? j : null;
+  }
+  o.onboarded = !!o.onboarded;
+
+  /* --- Sprint 3 : les données existantes deviennent le premier cycle --- */
+  if(!o.cycleId) o.cycleId = uid();
+  if(!o.cycleDebut) o.cycleDebut = debutCycleTheorique(o.jourSalaire);
+  o.cycles = (Array.isArray(o.cycles) ? o.cycles : []).filter(function(c){
+    return c && typeof c === "object" && Array.isArray(c.rubriques);
+  }).map(function(c){
+    return {
+      id: c.id || uid(),
+      debut: c.debut || aujourdhui(),
+      fin: c.fin || c.debut || aujourdhui(),
+      jourSalaire: (c.jourSalaire === undefined ? o.jourSalaire : c.jourSalaire),
+      revenus: (Array.isArray(c.revenus) ? c.revenus : []).map(function(r){
+        return {id: r.id || uid(), libelle: String(r.libelle || ""), montant: Number(r.montant) || 0};
+      }),
+      rubriques: c.rubriques.filter(function(r){ return r && typeof r.id === "string"; })
+        .map(function(r){
+          return {id: r.id, nom: String(r.nom || "Rubrique"), icone: r.icone || "\uD83D\uDCB8",
+                  couleur: r.couleur || COULEURS[0], groupe: r.groupe || "Vie courante",
+                  montant: Number(r.montant) || 0};
+        }),
+      depenses: (Array.isArray(c.depenses) ? c.depenses : []).filter(function(d){
+        return d && typeof d.rubrique === "string";
+      }).map(function(d){
+        return {id: d.id || uid(), rubrique: d.rubrique, montant: Number(d.montant) || 0,
+                libelle: String(d.libelle || ""), date: d.date || c.debut || aujourdhui(),
+                cree: Number(d.cree) || 0};
+      })
+    };
+  });
+  o.rappelSauvegarde = !!o.rappelSauvegarde;
+  if(typeof o.derniereSauvegarde !== "string") o.derniereSauvegarde = null;
+  o.version = 4;
+  return o;
+}
+
 function charger(){
   try{
     var brut = localStorage.getItem(CLE);
     if(brut){
-      var o = JSON.parse(brut);
-      if(o && (o.version === 2 || o.version === 3) && Array.isArray(o.rubriques) && Array.isArray(o.revenus)){
-        /* migration douce Sprint 1 → Sprint 2 : on ne perd rien */
-        if(!Array.isArray(o.depenses)) o.depenses = [];
-        o.version = 3;
-        return o;
-      }
+      var o = normaliser(JSON.parse(brut));
+      if(o) return o;
     }
   }catch(e){}
   return neuf();
@@ -561,6 +717,215 @@ function jaugeRub(depense, affecte){
   return wrap;
 }
 
+/* ==============================================================
+   SPRINT 3 — CYCLES BUDGÉTAIRES (F1)
+   ============================================================== */
+
+/* Le cycle en cours est-il arrivé à échéance ? */
+function cycleAEcheance(){
+  if(!S.onboarded || S.jourSalaire === null || S.jourSalaire === undefined) return false;
+  var t = new Date(); t.setHours(0,0,0,0);
+  return t.getTime() >= paieApres(S.cycleDebut || aujourdhui()).getTime();
+}
+function periodeCycle(c){
+  return dateComplete(c.debut) + " → " + dateComplete(c.fin);
+}
+function cycleParId(id){
+  for(var i = 0; i < S.cycles.length; i++){ if(S.cycles[i].id === id) return S.cycles[i]; }
+  return null;
+}
+/* Photographie du cycle en cours, telle qu'elle sera archivée */
+function instantaneCycle(){
+  return {
+    id: S.cycleId || uid(),
+    debut: S.cycleDebut || aujourdhui(),
+    fin: aujourdhui(),
+    jourSalaire: S.jourSalaire,
+    revenus: S.revenus.map(function(r){
+      return {id: r.id, libelle: r.libelle, montant: Number(r.montant) || 0};
+    }),
+    /* on garde les rubriques qui ont reçu un montant, porté une dépense, ou qui sont actives */
+    rubriques: S.rubriques.filter(function(r){
+      return r.active || (Number(r.montant) || 0) > 0 || depenseRub(r.id) > 0;
+    }).map(function(r){
+      return {id: r.id, nom: r.nom, icone: r.icone, couleur: r.couleur,
+              groupe: r.groupe, montant: Number(r.montant) || 0};
+    }),
+    depenses: S.depenses.map(function(d){
+      return {id: d.id, rubrique: d.rubrique, montant: Number(d.montant) || 0,
+              libelle: d.libelle || "", date: d.date, cree: d.cree || 0};
+    })
+  };
+}
+/* --- calculs sur un cycle archivé --- */
+function cycRevenus(c){
+  return c.revenus.reduce(function(t,r){ return t + (Number(r.montant)||0); }, 0);
+}
+function cycReparti(c){
+  return c.rubriques.reduce(function(t,r){ return t + (Number(r.montant)||0); }, 0);
+}
+function cycDepenseRub(c, id){
+  return c.depenses.reduce(function(t,d){
+    return t + (d.rubrique === id ? (Number(d.montant)||0) : 0);
+  }, 0);
+}
+function cycDepense(c){
+  return c.depenses.reduce(function(t,d){ return t + (Number(d.montant)||0); }, 0);
+}
+
+/* Préparer un nouveau cycle : revenus et répartition préremplis, modifiables */
+function ouvrirNouveauCycle(){
+  brouillonCycle = {
+    revenus: S.revenus.map(function(r){
+      return {id: uid(), libelle: r.libelle, montant: Number(r.montant) || 0};
+    }),
+    montants: {}
+  };
+  actives().forEach(function(r){ brouillonCycle.montants[r.id] = Number(r.montant) || 0; });
+  aller("nouveauCycle");
+}
+function brTotalRevenus(){
+  if(!brouillonCycle) return 0;
+  return brouillonCycle.revenus.reduce(function(t,r){ return t + (Number(r.montant)||0); }, 0);
+}
+function brTotalReparti(){
+  if(!brouillonCycle) return 0;
+  return actives().reduce(function(t,r){ return t + (Number(brouillonCycle.montants[r.id])||0); }, 0);
+}
+/* Clôture de l'ancien cycle, ouverture du nouveau */
+function validerNouveauCycle(){
+  if(!brouillonCycle) return;
+  var b = brouillonCycle;
+  S.cycles.unshift(instantaneCycle());       /* le plus récent en tête */
+  S.cycleId = uid();
+  S.cycleDebut = aujourdhui();
+  S.revenus = b.revenus.map(function(r){
+    return {id: uid(), libelle: r.libelle || "Revenu", montant: Number(r.montant) || 0};
+  });
+  if(!S.revenus.length) S.revenus = [{id: uid(), libelle: "Salaire net", montant: 0}];
+  S.rubriques.forEach(function(r){
+    r.montant = r.active ? (Number(b.montants[r.id]) || 0) : 0;
+  });
+  S.depenses = [];
+  S.rappelSauvegarde = true;                 /* rappel doux à chaque clôture (F7) */
+  brouillonCycle = null;
+  sauver();
+  aller("dashboard");
+  toast("Nouveau cycle démarré ✓");
+}
+
+/* ==============================================================
+   SPRINT 3 — AFFICHAGE PAR GROUPES (F5)
+   ============================================================== */
+/* Groupes réellement représentés, dans l'ordre du cahier des charges.
+   Les groupes vides ne sont jamais renvoyés. */
+function groupesPresents(liste){
+  var vus = [], out = [];
+  liste.forEach(function(r){
+    var g = r.groupe || "Autres";
+    if(vus.indexOf(g) < 0) vus.push(g);
+  });
+  GROUPES.forEach(function(g){ if(vus.indexOf(g) >= 0) out.push(g); });
+  vus.forEach(function(g){ if(out.indexOf(g) < 0) out.push(g); });
+  return out;
+}
+function membresGroupe(liste, g){
+  return liste.filter(function(r){ return (r.groupe || "Autres") === g; });
+}
+/* En-tête de groupe : nom + sous-total dépensé / affecté */
+function enteteGroupe(nom, affecte, depense){
+  var h = el("div", "grp");
+  var t = el("div", "grp-t");
+  t.appendChild(el("span", "grp-nom", nom));
+  t.appendChild(el("span", "grp-mont", fmtF(depense) + " / " + fmtF(affecte)));
+  h.appendChild(t);
+  h.appendChild(jaugeRub(depense, affecte));
+  return h;
+}
+
+/* ==============================================================
+   SPRINT 3 — SAUVEGARDE ET RESTAURATION (F7)
+   Tout se passe sur l'appareil : aucun envoi, aucun réseau.
+   ============================================================== */
+function sauvegarderDonnees(){
+  var ok = false;
+  try{
+    var texte = JSON.stringify(S, null, 2);
+    var blob = new Blob([texte], {type: "application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "mondjai-sauvegarde-" + aujourdhui() + ".json";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){
+      if(a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1500);
+    ok = true;
+  }catch(e){ ok = false; }
+  if(ok){
+    S.derniereSauvegarde = aujourdhui();
+    S.rappelSauvegarde = false;
+    sauver();
+    toast("Sauvegarde téléchargée ✓");
+    render();
+  }else{
+    alert("La sauvegarde n'a pas pu être créée sur cet appareil. Réessayez depuis le navigateur Chrome.");
+  }
+}
+function restaurerDonnees(){
+  var input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json,.json";
+  input.style.display = "none";
+  document.body.appendChild(input);
+  input.addEventListener("change", function(){
+    var f = input.files && input.files[0];
+    if(!f){ if(input.parentNode) input.parentNode.removeChild(input); return; }
+    var lecteur = new FileReader();
+    lecteur.onload = function(){
+      var objet = null;
+      try{ objet = normaliser(JSON.parse(String(lecteur.result))); }catch(e){ objet = null; }
+      if(!objet){
+        alert("Ce fichier n'est pas une sauvegarde MonDjai valide.\n\nChoisissez un fichier « mondjai-sauvegarde-….json » créé par l'application. Vos données actuelles n'ont pas été touchées.");
+      }else{
+        var res = objet.cycles.length;
+        var msg = "Restaurer cette sauvegarde ?\n\n"
+                + "Elle contient " + objet.rubriques.length + " rubriques, "
+                + objet.depenses.length + " dépenses dans le cycle en cours et "
+                + res + (res > 1 ? " cycles archivés" : " cycle archivé") + ".\n\n"
+                + "Toutes les données actuellement sur cet appareil seront remplacées.";
+        if(confirm(msg)){
+          S = objet;
+          sauver();
+          rubOuverte = null; cycleOuvert = null; brouillonCycle = null;
+          vue = S.onboarded ? "dashboard" : "revenus";
+          render();
+          toast("Sauvegarde restaurée ✓");
+        }
+      }
+      if(input.parentNode) input.parentNode.removeChild(input);
+    };
+    lecteur.onerror = function(){
+      alert("Le fichier n'a pas pu être lu. Vos données actuelles n'ont pas été touchées.");
+      if(input.parentNode) input.parentNode.removeChild(input);
+    };
+    lecteur.readAsText(f);
+  });
+  input.click();
+}
+/* Deux boutons réutilisés sur le tableau de bord et l'historique */
+function blocSauvegarde(){
+  var r = el("div", "row-btns");
+  var b1 = el("button", "btn", "Sauvegarder mes données"); b1.type = "button";
+  b1.addEventListener("click", sauvegarderDonnees);
+  var b2 = el("button", "btn", "Restaurer une sauvegarde"); b2.type = "button";
+  b2.addEventListener("click", restaurerDonnees);
+  r.appendChild(b1); r.appendChild(b2);
+  return r;
+}
+
 /* ---------- champ montant ---------- */
 function champMontant(valeur, onChange){
   var i = document.createElement("input");
@@ -603,16 +968,22 @@ function render(){
     eb.textContent = "Étape " + ({revenus:1, rubriques:2, repartition:3}[vue] || 3) + " sur 3";
   }else{
     eb.textContent = ({revenus:"Revenus", rubriques:"Rubriques", repartition:"Répartition",
-                       dashboard:"Tableau de bord", rubrique:"Enveloppe"})[vue] || "Tableau de bord";
+                       dashboard:"Tableau de bord", rubrique:"Enveloppe",
+                       nouveauCycle:"Nouveau cycle", historique:"Historique",
+                       cycle:"Cycle archivé"})[vue] || "Tableau de bord";
   }
   if(vue === "revenus") vueRevenus(ec, ba);
   else if(vue === "rubriques") vueRubriques(ec, ba);
   else if(vue === "repartition") vueRepartition(ec, ba);
   else if(vue === "rubrique") vueRubriqueDetail(ec, ba);
+  else if(vue === "nouveauCycle") vueNouveauCycle(ec, ba);
+  else if(vue === "historique") vueHistorique(ec, ba);
+  else if(vue === "cycle") vueCycleArchive(ec, ba);
   else vueDashboard(ec, ba);
 }
 function aller(v){ vue = v; sauver(); render(); }
 function ouvrirRubrique(id){ rubOuverte = id; aller("rubrique"); }
+function ouvrirCycle(id){ cycleOuvert = id; aller("cycle"); }
 
 /* ==============================================================
    ÉCRAN 1 — Jour de salaire + revenus
@@ -972,6 +1343,11 @@ function vueRepartition(ec, ba){
   var bFin = el("button", "btn btn-primary", S.onboarded ? "Enregistrer" : "Voir mon tableau de bord");
   bFin.type = "button";
   bFin.addEventListener("click", function(){
+    if(!S.onboarded){
+      /* le premier cycle démarre à la dernière date de paie passée */
+      S.cycleDebut = debutCycleTheorique();
+      if(!S.cycleId) S.cycleId = uid();
+    }
     S.onboarded = true; sauver(); aller("dashboard");
   });
   rowB.appendChild(bFin);
@@ -1292,7 +1668,36 @@ function vueDashboard(ec, ba){
   var paie = prochainePaie();
 
   ec.appendChild(el("h1", null, "Tableau de bord"));
-  ec.appendChild(el("p", "sub", "Salaire reçu " + libelleJour() + "."));
+  ec.appendChild(el("p", "sub", "Cycle en cours depuis le " + dateComplete(S.cycleDebut) + "."));
+
+  /* --- proposition de nouveau cycle au jour de paie (F1) --- */
+  if(cycleAEcheance()){
+    var av = el("div", "avis");
+    av.appendChild(el("div", "avis-t", "C'est le jour de la paie"));
+    av.appendChild(el("p", "avis-p",
+      "Vous pouvez clôturer ce cycle et en démarrer un nouveau. Vos revenus et votre répartition seront préremplis à partir du cycle en cours, et resteront modifiables."));
+    var bAv = el("button", "btn btn-primary", "J'ai reçu mon salaire");
+    bAv.type = "button";
+    bAv.addEventListener("click", ouvrirNouveauCycle);
+    av.appendChild(bAv);
+    ec.appendChild(av);
+  }
+
+  /* --- rappel doux de sauvegarde après une clôture (F7) --- */
+  if(S.rappelSauvegarde){
+    var rs = el("div", "avis");
+    rs.appendChild(el("div", "avis-t", "Pensez à sauvegarder"));
+    rs.appendChild(el("p", "avis-p",
+      "Un cycle vient d'être archivé. Vos données vivent uniquement sur ce téléphone : un fichier de sauvegarde les met à l'abri."));
+    var rb2 = el("div", "row-btns");
+    var bS = el("button", "btn btn-primary", "Sauvegarder mes données"); bS.type = "button";
+    bS.addEventListener("click", sauvegarderDonnees);
+    var bP = el("button", "btn btn-ghost", "Plus tard"); bP.type = "button";
+    bP.addEventListener("click", function(){ S.rappelSauvegarde = false; sauver(); render(); });
+    rb2.appendChild(bP); rb2.appendChild(bS);
+    rs.appendChild(rb2);
+    ec.appendChild(rs);
+  }
 
   /* --- en-tête : reste global + jours avant la prochaine paie --- */
   var tete = el("div", "tb-tete");
@@ -1330,7 +1735,7 @@ function vueDashboard(ec, ba){
     ec.appendChild(el("div", "banner", "Déficit à combler : " + fmtF(-rst)));
   }
 
-  /* --- une jauge par rubrique --- */
+  /* --- enveloppes regroupées par groupe, une jauge par rubrique --- */
   ec.appendChild(el("h2", null, "Vos enveloppes"));
   var act = actives();
   if(act.length === 0){
@@ -1338,8 +1743,18 @@ function vueDashboard(ec, ba){
     c0.appendChild(el("div", "vide-msg", "Aucune rubrique active. Ouvrez « Rubriques » pour en choisir."));
     ec.appendChild(c0);
   }else{
-    act.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); }).forEach(function(r){
-      ec.appendChild(carteEnveloppe(r));
+    /* les groupes vides ne s'affichent pas */
+    groupesPresents(act).forEach(function(g){
+      var membres = membresGroupe(act, g);
+      if(!membres.length) return;
+      var affG = 0, depG = 0;
+      membres.forEach(function(r){
+        affG += Number(r.montant) || 0;
+        depG += depenseRub(r.id);
+      });
+      ec.appendChild(enteteGroupe(g, affG, depG));
+      membres.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); })
+        .forEach(function(r){ ec.appendChild(carteEnveloppe(r)); });
     });
   }
 
@@ -1377,6 +1792,18 @@ function vueDashboard(ec, ba){
     ec.appendChild(vide);
   }
 
+  /* --- cycle --- */
+  ec.appendChild(el("h2", null, "Cycle"));
+  var bCyc = el("button", "btn", "J'ai reçu mon salaire");
+  bCyc.type = "button";
+  bCyc.addEventListener("click", ouvrirNouveauCycle);
+  ec.appendChild(bCyc);
+  var aideCyc = el("p", "tiny muted",
+    "Clôture ce cycle et en démarre un nouveau, en avance ou en retard, comme vous voulez. Prochaine paie prévue " +
+    (paie ? "le " + paie.getDate() + " " + MOIS[paie.getMonth()] : libelleJour()) + ".");
+  aideCyc.style.margin = "8px 0 0";
+  ec.appendChild(aideCyc);
+
   /* --- modifier --- */
   ec.appendChild(el("h2", null, "Modifier"));
   var r1 = el("div", "row-btns");
@@ -1391,12 +1818,30 @@ function vueDashboard(ec, ba){
   b3.addEventListener("click", function(){ aller("revenus"); });
   ec.appendChild(b3);
 
+  /* --- historique et données --- */
+  ec.appendChild(el("h2", null, "Historique et données"));
+  var n = S.cycles.length;
+  var bH = el("button", "btn", n ? "Historique (" + n + (n > 1 ? " cycles)" : " cycle)") : "Historique");
+  bH.type = "button";
+  bH.addEventListener("click", function(){ aller("historique"); });
+  ec.appendChild(bH);
+  var bs = blocSauvegarde();
+  bs.style.marginTop = "8px";
+  ec.appendChild(bs);
+  var aideS = el("p", "tiny muted", S.derniereSauvegarde
+    ? "Dernière sauvegarde : " + dateComplete(S.derniereSauvegarde) + "."
+    : "Aucune sauvegarde pour l'instant. Le fichier reste sur votre téléphone.");
+  aideS.style.margin = "8px 0 0";
+  ec.appendChild(aideS);
+
   var b4 = el("button", "btn btn-danger", "Réinitialiser MonDjai"); b4.type = "button";
   b4.style.marginTop = "26px";
   b4.addEventListener("click", function(){
-    if(confirm("Effacer toutes vos données MonDjai sur cet appareil ? Cette action est définitive.")){
+    if(confirm("Effacer toutes vos données MonDjai sur cet appareil — cycle en cours et cycles archivés ? Cette action est définitive.\n\nPensez à sauvegarder avant, si vous voulez pouvoir revenir en arrière.")){
       try{ localStorage.removeItem(CLE); }catch(e){}
-      S = neuf(); vue = "revenus"; render();
+      S = neuf();
+      rubOuverte = null; cycleOuvert = null; brouillonCycle = null;
+      vue = "revenus"; render();
     }
   });
   ec.appendChild(b4);
@@ -1561,7 +2006,423 @@ function vueRubriqueDetail(ec, ba){
   boutonPlus(ba, r.id);
 }
 
-/* ---------- démarrage ---------- */
+/* ==============================================================
+   ÉCRAN 6 — Nouveau cycle (F1)
+   Revenus et répartition préremplis à partir du cycle en cours,
+   modifiables avant validation. L'ancien cycle est archivé.
+   ============================================================== */
+function vueNouveauCycle(ec, ba){
+  if(!brouillonCycle){ ouvrirNouveauCycle(); return; }
+  var b = brouillonCycle;
+
+  var bRet = el("button", "btn btn-ghost btn-line", "‹ Tableau de bord");
+  bRet.type = "button";
+  bRet.style.marginBottom = "14px";
+  bRet.addEventListener("click", function(){ brouillonCycle = null; aller("dashboard"); });
+  ec.appendChild(bRet);
+
+  ec.appendChild(el("h1", null, "J'ai reçu mon salaire"));
+  ec.appendChild(el("p", "sub",
+    "Tout est prérempli à partir du cycle en cours : ajustez ce qui a changé, puis validez. Le cycle démarré le "
+    + dateComplete(S.cycleDebut) + " sera archivé avec ses dépenses."));
+
+  /* --- revenus du nouveau cycle --- */
+  ec.appendChild(el("h2", null, "Revenus de ce cycle"));
+  var liste = el("div");
+  ec.appendChild(liste);
+
+  function dessinerRevenus(){
+    liste.innerHTML = "";
+    b.revenus.forEach(function(rev, idx){
+      var l = el("div", "ligne");
+      var lib = document.createElement("input");
+      lib.type = "text"; lib.className = "lib"; lib.value = rev.libelle;
+      lib.placeholder = "Nom du revenu";
+      lib.setAttribute("aria-label", "Nom du revenu");
+      lib.addEventListener("input", function(){ rev.libelle = lib.value; });
+      l.appendChild(lib);
+      l.appendChild(champMontant(rev.montant, function(v){ rev.montant = v; maj(); }));
+      if(idx > 0){
+        var d = el("button", "del", "×");
+        d.type = "button"; d.title = "Retirer ce revenu";
+        d.setAttribute("aria-label", "Retirer " + (rev.libelle || "ce revenu"));
+        d.addEventListener("click", function(){
+          b.revenus = b.revenus.filter(function(x){ return x.id !== rev.id; });
+          dessinerRevenus(); maj();
+        });
+        l.appendChild(d);
+      }
+      liste.appendChild(l);
+    });
+  }
+  dessinerRevenus();
+
+  var bAjout = el("button", "btn btn-ghost", "+ Ajouter un revenu");
+  bAjout.type = "button";
+  var menu = el("div", "menu");
+  menu.hidden = true;
+  TYPES_REVENU.forEach(function(t){
+    var bt = el("button", null, t);
+    bt.type = "button";
+    bt.addEventListener("click", function(){
+      b.revenus.push({id: uid(), libelle: (t === "Autre" ? "" : t), montant: 0});
+      menu.hidden = true; dessinerRevenus(); maj();
+    });
+    menu.appendChild(bt);
+  });
+  bAjout.addEventListener("click", function(){ menu.hidden = !menu.hidden; });
+  ec.appendChild(bAjout);
+  ec.appendChild(menu);
+
+  var tot = el("div", "total-ligne");
+  tot.appendChild(el("span", "muted small", "Total des revenus"));
+  var totVal = el("span", "big");
+  tot.appendChild(totVal);
+  ec.appendChild(tot);
+
+  /* --- répartition du nouveau cycle, par groupe --- */
+  ec.appendChild(el("h2", null, "Répartition"));
+  var act = actives();
+  var pcts = {}, champs = {};
+  if(!act.length){
+    var c0 = el("div", "card");
+    c0.appendChild(el("div", "vide-msg", "Aucune rubrique active. Ouvrez « Rubriques » pour en choisir."));
+    ec.appendChild(c0);
+  }else{
+    groupesPresents(act).forEach(function(g){
+      var membres = membresGroupe(act, g);
+      if(!membres.length) return;
+      var h = el("div", "grp");
+      var ht = el("div", "grp-t");
+      ht.appendChild(el("span", "grp-nom", g));
+      var sous = el("span", "grp-mont", "");
+      ht.appendChild(sous);
+      h.appendChild(ht);
+      h.dataset.groupe = g;
+      ec.appendChild(h);
+      pcts["__grp_" + g] = sous;
+
+      membres.forEach(function(r){
+        var row = el("div", "repart");
+        row.style.borderLeftColor = r.couleur;
+        row.appendChild(el("span", "ico", r.icone));
+        var bloc = el("div");
+        bloc.style.flex = "1"; bloc.style.minWidth = "0";
+        bloc.appendChild(el("div", "nom", r.nom));
+        var p = el("span", "pct", "0 %");
+        pcts[r.id] = p;
+        bloc.appendChild(p);
+        row.appendChild(bloc);
+
+        var bReste = el("button", "reste-ici", "+ reste");
+        bReste.type = "button";
+        bReste.title = "Mettre tout le reste dans cette rubrique";
+        row.appendChild(bReste);
+
+        var champ = champMontant(b.montants[r.id] || 0, function(v){ b.montants[r.id] = v; maj(); });
+        champs[r.id] = champ;
+        row.appendChild(champ);
+
+        bReste.addEventListener("click", function(){
+          var rst = brTotalRevenus() - brTotalReparti();
+          if(rst <= 0) return;
+          b.montants[r.id] = (Number(b.montants[r.id]) || 0) + rst;
+          champ.value = fmt(b.montants[r.id]);
+          champ.classList.remove("vide");
+          maj();
+        });
+        ec.appendChild(row);
+      });
+    });
+  }
+
+  /* --- barre --- */
+  var bar = el("div", "sticky"), inn = el("div", "sticky-in");
+  var banniere = el("div", "banner");
+  banniere.hidden = true;
+  var rl = el("div", "reste-line");
+  var gauche = el("div");
+  gauche.appendChild(el("div", "lab", "Reste à répartir"));
+  var val = el("div", "reste-val");
+  gauche.appendChild(val);
+  rl.appendChild(gauche);
+  var droite = el("div", "tiny muted num");
+  droite.style.textAlign = "right";
+  rl.appendChild(droite);
+
+  var rowB = el("div", "row-btns");
+  var bAnn = el("button", "btn btn-ghost", "Annuler"); bAnn.type = "button";
+  bAnn.addEventListener("click", function(){ brouillonCycle = null; aller("dashboard"); });
+  var bOk = el("button", "btn btn-primary", "Démarrer le cycle"); bOk.type = "button";
+  bOk.addEventListener("click", function(){
+    var dep = totalDepense();
+    var msg = "Démarrer un nouveau cycle ?\n\nLe cycle en cours (depuis le " + dateComplete(S.cycleDebut) + ") "
+            + "sera archivé avec ses " + S.depenses.length + (S.depenses.length > 1 ? " dépenses" : " dépense")
+            + " (" + fmt(dep) + " F). Vous le retrouverez dans l'Historique.";
+    if(confirm(msg)) validerNouveauCycle();
+  });
+  rowB.appendChild(bAnn); rowB.appendChild(bOk);
+
+  inn.appendChild(banniere); inn.appendChild(rl); inn.appendChild(rowB);
+  bar.appendChild(inn); ba.appendChild(bar);
+
+  function maj(){
+    var t = brTotalRevenus(), rep = brTotalReparti(), rst = t - rep;
+    totVal.textContent = fmtF(t);
+    act.forEach(function(r){
+      var m = Number(b.montants[r.id]) || 0;
+      pcts[r.id].textContent = (t > 0 ? Math.round(m / t * 100) : 0) + "%";
+    });
+    groupesPresents(act).forEach(function(g){
+      if(!pcts["__grp_" + g]) return;
+      var s = 0;
+      membresGroupe(act, g).forEach(function(r){ s += Number(b.montants[r.id]) || 0; });
+      pcts["__grp_" + g].textContent = fmtF(s);
+    });
+    droite.textContent = "Réparti : " + fmtF(rep) + " / " + fmtF(t);
+    if(rst < 0){
+      val.textContent = fmtF(0);
+      val.className = "reste-val deficit";
+      banniere.hidden = false;
+      banniere.textContent = "Déficit à combler : " + fmtF(-rst);
+    }else{
+      val.textContent = fmtF(rst);
+      val.className = "reste-val" + (rst === 0 ? " ok" : "");
+      banniere.hidden = true;
+    }
+    bOk.disabled = !(t > 0);
+  }
+  maj();
+}
+
+/* ==============================================================
+   ÉCRAN 7 — Historique des cycles (F6)
+   ============================================================== */
+function vueHistorique(ec, ba){
+  var bRet = el("button", "btn btn-ghost btn-line", "‹ Tableau de bord");
+  bRet.type = "button";
+  bRet.style.marginBottom = "14px";
+  bRet.addEventListener("click", function(){ aller("dashboard"); });
+  ec.appendChild(bRet);
+
+  ec.appendChild(el("h1", null, "Historique"));
+  ec.appendChild(el("p", "sub", "Vos cycles clôturés, du plus récent au plus ancien."));
+
+  if(!S.cycles.length){
+    var c0 = el("div", "card");
+    c0.appendChild(el("div", "vide-msg",
+      "Aucun cycle archivé pour l'instant. Votre premier cycle apparaîtra ici le jour où vous démarrerez le suivant."));
+    ec.appendChild(c0);
+  }else{
+    S.cycles.forEach(function(c){
+      var rev = cycRevenus(c), dep = cycDepense(c), ecart = rev - dep;
+      var b = el("button", "cyc");
+      b.type = "button";
+      b.setAttribute("aria-label", "Ouvrir le cycle du " + periodeCycle(c));
+
+      var h = el("div", "cyc-h");
+      h.appendChild(el("span", "cyc-per", periodeCycle(c)));
+      h.appendChild(el("span", "chev", "›"));
+      b.appendChild(h);
+
+      var g = el("div", "cyc-g");
+      var d1 = el("div", null, "REVENUS");
+      d1.insertBefore(el("b", null, fmtF(rev)), d1.firstChild);
+      var d2 = el("div", null, "DÉPENSÉ");
+      d2.insertBefore(el("b", null, fmtF(dep)), d2.firstChild);
+      var d3 = el("div", null, ecart >= 0 ? "RESTÉ" : "DÉPASSEMENT");
+      d3.insertBefore(el("b", ecart >= 0 ? "c-vert" : "c-rouge", fmtF(Math.abs(ecart))), d3.firstChild);
+      g.appendChild(d1); g.appendChild(d2); g.appendChild(d3);
+      b.appendChild(g);
+
+      b.appendChild(jaugeRub(dep, rev));
+      b.addEventListener("click", function(){ ouvrirCycle(c.id); });
+      ec.appendChild(b);
+    });
+  }
+
+  ec.appendChild(el("h2", null, "Vos données"));
+  ec.appendChild(blocSauvegarde());
+  var aide = el("p", "tiny muted",
+    "La sauvegarde contient tout : cycles archivés, rubriques, répartition et dépenses. Gardez le fichier quelque part de sûr — c'est votre seule copie.");
+  aide.style.margin = "10px 0 0";
+  ec.appendChild(aide);
+}
+
+/* ==============================================================
+   ÉCRAN 8 — Un cycle archivé, en lecture seule (F6)
+   ============================================================== */
+function vueCycleArchive(ec, ba){
+  var c = cycleParId(cycleOuvert);
+  if(!c){ aller("historique"); return; }
+
+  var rev = cycRevenus(c), rep = cycReparti(c), dep = cycDepense(c);
+  var ecart = rev - dep;
+
+  var bRet = el("button", "btn btn-ghost btn-line", "‹ Historique");
+  bRet.type = "button";
+  bRet.style.marginBottom = "14px";
+  bRet.addEventListener("click", function(){ aller("historique"); });
+  ec.appendChild(bRet);
+
+  ec.appendChild(el("h1", null, "Cycle clôturé"));
+  var sub = el("p", "sub", periodeCycle(c));
+  ec.appendChild(sub);
+  var badge = el("span", "lecture", "Lecture seule");
+  ec.appendChild(badge);
+
+  /* --- synthèse --- */
+  var tete = el("div", "tb-tete");
+  tete.style.marginTop = "16px";
+  tete.appendChild(el("div", "lab tiny muted", "DÉPENSÉ SUR CE CYCLE"));
+  var grand = el("div", "big", fmtF(dep));
+  if(dep > rev) grand.className = "big c-rouge";
+  tete.appendChild(grand);
+  tete.appendChild(el("div", "tiny muted", "sur " + fmtF(rev) + " de revenus"));
+  var jg = jaugeRub(dep, rev);
+  jg.style.marginTop = "12px";
+  tete.appendChild(jg);
+  var bas = el("div", "env-bas");
+  bas.appendChild(el("span", "muted", "Réparti : " + fmtF(rep)));
+  bas.appendChild(el("span", ecart >= 0 ? "c-vert" : "c-rouge",
+    ecart >= 0 ? "Resté " + fmtF(ecart) : "Dépassement de " + fmtF(-ecart)));
+  tete.appendChild(bas);
+  ec.appendChild(tete);
+
+  /* --- revenus --- */
+  ec.appendChild(el("h2", null, "Revenus"));
+  var cr = el("div", "card");
+  if(!c.revenus.length){
+    cr.appendChild(el("div", "vide-msg", "Aucun revenu enregistré sur ce cycle."));
+  }else{
+    c.revenus.forEach(function(r){
+      var l = el("div", "ro");
+      var h = el("div", "ro-h");
+      h.appendChild(el("span", "nom", r.libelle || "Revenu"));
+      h.appendChild(el("div", "ro-m", fmtF(r.montant)));
+      l.appendChild(h);
+      cr.appendChild(l);
+    });
+    var lt = el("div", "ro");
+    var ht = el("div", "ro-h");
+    ht.appendChild(el("span", "nom muted", "Total"));
+    ht.appendChild(el("div", "ro-m", fmtF(rev)));
+    lt.appendChild(ht);
+    cr.appendChild(lt);
+  }
+  ec.appendChild(cr);
+
+  /* --- répartition, dépensé et écarts, par groupe --- */
+  ec.appendChild(el("h2", null, "Répartition et dépenses"));
+  var rubs = c.rubriques.filter(function(r){
+    return (Number(r.montant) || 0) > 0 || cycDepenseRub(c, r.id) > 0;
+  });
+  if(!rubs.length){
+    var c1 = el("div", "card");
+    c1.appendChild(el("div", "vide-msg", "Rien n'a été réparti ni dépensé sur ce cycle."));
+    ec.appendChild(c1);
+  }else{
+    groupesPresents(rubs).forEach(function(g){
+      var membres = membresGroupe(rubs, g);
+      if(!membres.length) return;
+      var affG = 0, depG = 0;
+      membres.forEach(function(r){
+        affG += Number(r.montant) || 0;
+        depG += cycDepenseRub(c, r.id);
+      });
+      ec.appendChild(enteteGroupe(g, affG, depG));
+
+      var carte = el("div", "card");
+      membres.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); }).forEach(function(r){
+        var aff = Number(r.montant) || 0;
+        var d = cycDepenseRub(c, r.id);
+        var e = aff - d;
+        var etat = etatJauge(d, aff);
+
+        var l = el("div", "ro");
+        var h = el("div", "ro-h");
+        var ic = el("span", "ico", r.icone);
+        ic.style.background = "rgba(255,255,255,.05)";
+        ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+        h.appendChild(ic);
+        h.appendChild(el("span", "nom", r.nom));
+        var m = el("div", "ro-m", fmtF(d));
+        m.appendChild(el("small", null, "sur " + fmtF(aff)));
+        h.appendChild(m);
+        l.appendChild(h);
+        l.appendChild(jaugeRub(d, aff));
+        var b2 = el("div", "ro-b");
+        b2.appendChild(el("span", classeEtat(etat),
+          aff > 0 ? pct(d / aff * 100) + " utilisé" : (d > 0 ? "hors enveloppe" : "rien d'affecté")));
+        b2.appendChild(el("span", e < 0 ? "c-rouge" : "muted",
+          e >= 0 ? "Écart : + " + fmtF(e) : "Écart : − " + fmtF(-e)));
+        l.appendChild(b2);
+        carte.appendChild(l);
+      });
+      ec.appendChild(carte);
+    });
+
+    var nonAff = rev - rep;
+    if(nonAff > 0){
+      var cn = el("div", "card");
+      cn.style.marginTop = "10px";
+      var ln = el("div", "tb-ligne");
+      var pa = el("span", "pastille");
+      pa.style.background = "var(--muted)";
+      ln.appendChild(pa);
+      ln.appendChild(el("span", "ico", "\uD83D\uDDC2\uFE0F"));
+      ln.appendChild(el("span", "nom", "Non affecté"));
+      var mn = el("div", "tb-mont", fmtF(nonAff));
+      mn.appendChild(el("small", null, "jamais réparti"));
+      ln.appendChild(mn);
+      cn.appendChild(ln);
+      ec.appendChild(cn);
+    }
+  }
+
+  /* --- journal des dépenses du cycle --- */
+  var liste = triDepenses(c.depenses);
+  ec.appendChild(el("h2", null, liste.length
+    ? "Ses dépenses (" + liste.length + ")" : "Ses dépenses"));
+  var cd = el("div", "card");
+  if(!liste.length){
+    cd.appendChild(el("div", "vide-msg", "Aucune dépense n'a été saisie sur ce cycle."));
+  }else{
+    liste.forEach(function(d){
+      var r = null;
+      for(var i = 0; i < c.rubriques.length; i++){ if(c.rubriques[i].id === d.rubrique) r = c.rubriques[i]; }
+      var l = el("div", "ro");
+      var h = el("div", "ro-h");
+      var ic = el("span", "ico", r ? r.icone : "\uD83D\uDCB8");
+      if(r){
+        ic.style.background = "rgba(255,255,255,.05)";
+        ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+      }
+      h.appendChild(ic);
+      var txt = el("div");
+      txt.style.flex = "1"; txt.style.minWidth = "0";
+      txt.appendChild(el("div", "d-lib", d.libelle || (r ? r.nom : "Dépense")));
+      var sous2 = dateCourte(d.date) + (r && d.libelle ? " · " + r.nom : "");
+      txt.appendChild(el("div", "d-date", sous2));
+      h.appendChild(txt);
+      h.appendChild(el("div", "ro-m", fmtF(d.montant)));
+      l.appendChild(h);
+      cd.appendChild(l);
+    });
+  }
+  ec.appendChild(cd);
+
+  var note = el("p", "tiny muted",
+    "Un cycle archivé ne se modifie plus : c'est la photo de votre mois, telle qu'elle était à la clôture.");
+  note.style.margin = "12px 0 0";
+  ec.appendChild(note);
+}
+
+/* ---------- démarrage ----------
+   On réécrit tout de suite l'état migré : même si l'utilisateur
+   ne touche à rien, ses données anciennes sont déjà au format
+   des cycles, sans qu'il ait rien vu ni rien perdu. */
+sauver();
 render();
 
 if("serviceWorker" in navigator){
