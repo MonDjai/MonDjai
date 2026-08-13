@@ -1,0 +1,23 @@
+{
+  "name": "MonDjai — Budget par enveloppes",
+  "short_name": "MonDjai",
+  "description": "Partagez votre salaire en enveloppes, en FCFA. Vos données restent sur votre téléphone.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F1218",
+  "theme_color": "#0F1218",
+  "categories": ["finance"],
+  "icons": [
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

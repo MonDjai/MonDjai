@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MonDjai — Budget par enveloppes</title>
+<meta name="description" content="MonDjai : le budget personnel par enveloppes, en FCFA.">
+<meta name="theme-color" content="#0F1218">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MonDjai">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-512.png">
+<link rel="apple-touch-icon" href="./icon-512.png">
+<style>
+/* ============================================================
+   MonDjai — feuille de style (tout est dans ce fichier)
+   ============================================================ */
+:root{
+  --bg:#0F1218;
+  --surface:#171C25;
+  --surface-2:#1F2632;
+  --line:#2A323F;
+  --text:#ECEFF5;
+  --muted:#98A2B4;
+  --gold:#F2A93B;
+  --gold-soft:rgba(242,169,59,.13);
+  --green:#3FB27F;
+  --red:#E5484D;
+  --red-soft:rgba(229,72,77,.13);
+  --r:14px;
+  --pad:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:100%;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+
+/* --- structure --- */
+.app{max-width:560px;margin:0 auto;padding:0 var(--pad)}
+header.top{
+  position:sticky;top:0;z-index:20;background:rgba(15,18,24,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  padding-top:env(safe-area-inset-top);
+}
+.top-in{max-width:560px;margin:0 auto;padding:12px var(--pad);display:flex;align-items:baseline;gap:10px}
+.mark{font-weight:800;letter-spacing:-.03em;font-size:19px}
+.mark em{font-style:normal;color:var(--gold)}
+.eyebrow{
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  font-weight:700;margin-left:auto
+}
+main{padding-top:20px;padding-bottom:200px}
+
+h1{font-size:24px;line-height:1.2;letter-spacing:-.02em;margin:0 0 6px;font-weight:800}
+.sub{color:var(--muted);font-size:14px;margin:0 0 22px}
+h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px;font-weight:700}
+
+/* --- blocs --- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.card + .card{margin-top:10px}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.big{font-size:30px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+
+/* --- boutons --- */
+.btn{
+  border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+  border-radius:11px;padding:12px 14px;font-weight:600;font-size:15px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--gold);color:#141414;border-color:var(--gold);font-weight:700}
+.btn-primary[disabled]{opacity:.35;pointer-events:none}
+.btn-ghost{background:transparent}
+.btn-line{width:auto;padding:9px 12px;font-size:14px;border-radius:10px}
+.btn-danger{color:var(--red);border-color:rgba(229,72,77,.35);background:transparent}
+.row-btns{display:flex;gap:8px}
+.row-btns .btn{flex:1}
+
+/* --- jour de salaire --- */
+.jours{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.jour{
+  border:1px solid var(--line);background:var(--surface);border-radius:9px;
+  padding:0;height:40px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)
+}
+.jour[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#141414;font-weight:800}
+.jour-dernier{margin-top:8px}
+.jour-dernier[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#141414}
+
+/* --- champs --- */
+.ligne{
+  display:flex;align-items:center;gap:10px;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px
+}
+.ligne .lib{
+  flex:1;min-width:0;background:transparent;border:0;padding:6px 0;font-size:15px;font-weight:600
+}
+.ligne .lib::placeholder{color:var(--muted);font-weight:500}
+.money{
+  width:130px;text-align:right;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:9px;padding:9px 10px;font-variant-numeric:tabular-nums;font-weight:700;font-size:15px
+}
+.money:focus{border-color:var(--gold);outline:none}
+.money.vide{color:var(--muted);font-weight:600}
+.del{
+  background:transparent;border:0;color:var(--muted);font-size:20px;line-height:1;
+  padding:6px 2px;width:28px;flex:none
+}
+.total-ligne{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+
+/* --- menu ajout revenu --- */
+.menu{margin-top:8px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.menu button{display:block;width:100%;text-align:left;background:transparent;border:0;padding:13px 14px;font-size:15px}
+.menu button + button{border-top:1px solid var(--line)}
+
+/* --- rubriques --- */
+.rub{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:11px 12px;margin-bottom:8px
+}
+.rub[aria-pressed="true"]{border-color:rgba(242,169,59,.5);background:var(--gold-soft)}
+.ico{
+  width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;
+  font-size:18px;background:var(--surface-2)
+}
+.rub .nom{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.check{
+  width:22px;height:22px;flex:none;border-radius:7px;border:1.5px solid var(--line);
+  display:grid;place-items:center;font-size:13px;color:transparent
+}
+.rub[aria-pressed="true"] .check{background:var(--gold);border-color:var(--gold);color:#141414;font-weight:900}
+.perso-tag{font-size:11px;color:var(--muted);flex:none}
+
+/* --- formulaire rubrique perso --- */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px}
+.input,select.input{
+  width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px
+}
+.input:focus{border-color:var(--gold);outline:none}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:34px;height:34px;border-radius:10px;border:2px solid transparent}
+.sw[aria-pressed="true"]{border-color:var(--text)}
+.emojis{display:flex;flex-wrap:wrap;gap:6px}
+.em{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);font-size:18px}
+.em[aria-pressed="true"]{border-color:var(--gold);background:var(--gold-soft)}
+
+/* --- répartition --- */
+.repart{
+  display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
+  border-left:3px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px
+}
+.repart .nom{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.repart .pct{display:block;font-weight:500;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.reste-ici{
+  background:transparent;border:1px solid var(--line);border-radius:9px;color:var(--muted);
+  font-size:11px;font-weight:700;padding:7px 8px;flex:none;letter-spacing:.04em
+}
+
+/* --- jauge (élément signature) --- */
+.jauge-wrap{margin:2px 0 10px}
+.jauge{
+  display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--surface-2);
+  border:1px solid var(--line)
+}
+.seg{height:100%;flex:none;transition:width .18s ease}
+.seg-vide{
+  flex:1;background:repeating-linear-gradient(135deg,transparent 0 5px,rgba(255,255,255,.06) 5px 10px)
+}
+
+/* --- barre collante --- */
+.sticky{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:rgba(15,18,24,.94);backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);
+  padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom))
+}
+.sticky-in{max-width:560px;margin:0 auto}
+.reste-line{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
+.reste-line .lab{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.reste-val{font-size:26px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
+.deficit{color:var(--red)}
+.ok{color:var(--green)}
+.banner{
+  background:var(--red-soft);border:1px solid rgba(229,72,77,.35);color:var(--red);
+  border-radius:11px;padding:11px 12px;font-weight:700;font-size:14px;margin-bottom:10px
+}
+.doux{
+  background:var(--gold-soft);border:1px solid rgba(242,169,59,.3);color:var(--gold);
+  border-radius:11px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:10px
+}
+
+/* --- tableau de bord --- */
+.tb-tete{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.tb-ligne{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.tb-ligne:last-child{border-bottom:0}
+.pastille{width:10px;height:10px;border-radius:99px;flex:none}
+.tb-ligne .nom{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-mont{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.tb-mont small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.vide-msg{color:var(--muted);font-size:14px;padding:14px 0}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <span class="mark">Mon<em>Djai</em></span>
+    <span class="eyebrow" id="eyebrow"></span>
+  </div>
+</header>
+
+<main class="app" id="ecran"></main>
+<div id="barre"></div>
+
+<script>
+"use strict";
+/* ==============================================================
+   MonDjai — Sprint 1
+   Tout est local : aucun appel réseau, aucune bibliothèque.
+   ============================================================== */
+
+/* ==============================================================
+   Rubriques préconfigurées — section F3 du cahier des charges V3.
+   defaut:true = cochée au premier lancement (✔ dans le document)
+   groupe      = stocké dès le Sprint 1, affiché à partir du Sprint 3
+   ============================================================== */
+var RUBRIQUES_F3 = [
+  /* --- Fixes --- */
+  {id:"loyer",       nom:"Loyer / Logement",              icone:"\uD83C\uDFE0", couleur:"#F2A93B", groupe:"Fixes", defaut:true},
+  {id:"famille",     nom:"Famille (soutien régulier)",    icone:"\uD83E\uDD1D", couleur:"#E0A44C", groupe:"Fixes", defaut:true},
+  {id:"eauelec",     nom:"Factures eau & électricité",    icone:"\uD83D\uDCA1", couleur:"#F2C94C", groupe:"Fixes", defaut:true},
+  {id:"creditdata",  nom:"Crédit & Data",                 icone:"\uD83D\uDCF1", couleur:"#E8B04B", groupe:"Fixes", defaut:true},
+  {id:"wifi",        nom:"Wifi maison",                   icone:"\uD83D\uDCF6", couleur:"#D9A05B", groupe:"Fixes", defaut:false},
+  {id:"gaz",         nom:"Gaz",                           icone:"\uD83D\uDD25", couleur:"#E5723B", groupe:"Fixes", defaut:false},
+  {id:"mensualites", nom:"Mensualités de crédit",         icone:"\uD83C\uDFE6", couleur:"#C89B5A", groupe:"Fixes", defaut:false},
+  {id:"scolarite",   nom:"Scolarité",                     icone:"\uD83C\uDF93", couleur:"#D4A76A", groupe:"Fixes", defaut:false},
+  {id:"assurances",  nom:"Assurances",                    icone:"\uD83D\uDEE1\uFE0F", couleur:"#BFA37A", groupe:"Fixes", defaut:false},
+
+  /* --- Vie courante --- */
+  {id:"nourrmaison", nom:"Nourriture maison",             icone:"\uD83C\uDF5A", couleur:"#56A8F5", groupe:"Vie courante", defaut:true},
+  {id:"nourrbureau", nom:"Nourriture bureau & divers",    icone:"\uD83C\uDF71", couleur:"#4A93E0", groupe:"Vie courante", defaut:true},
+  {id:"transport",   nom:"Transport",                     icone:"\uD83D\uDE95", couleur:"#5FC2C7", groupe:"Vie courante", defaut:true},
+  {id:"sante",       nom:"Santé",                         icone:"\uD83D\uDC8A", couleur:"#4FB3C9", groupe:"Vie courante", defaut:true},
+  {id:"entrmaison",  nom:"Entretien maison",              icone:"\uD83E\uDDFC", couleur:"#7FD1D6", groupe:"Vie courante", defaut:false},
+  {id:"pressing",    nom:"Pressing / Coiffure",           icone:"\uD83D\uDC87", couleur:"#5B8FD6", groupe:"Vie courante", defaut:false},
+  {id:"entrvehic",   nom:"Entretien véhicule",            icone:"\uD83D\uDD27", couleur:"#3E7FC1", groupe:"Vie courante", defaut:false},
+
+  /* --- Épargne & Investissement --- */
+  {id:"epargnetont", nom:"Épargne / Tontine",             icone:"\uD83D\uDC37", couleur:"#3FB27F", groupe:"Épargne & Investissement", defaut:true},
+  {id:"imprevus",    nom:"Fonds d'imprévus",              icone:"\uD83D\uDEDF", couleur:"#2E9E8F", groupe:"Épargne & Investissement", defaut:true},
+  {id:"epsecurite",  nom:"Épargne sécurité",              icone:"\uD83D\uDD12", couleur:"#57C08D", groupe:"Épargne & Investissement", defaut:false},
+  {id:"epprojets",   nom:"Épargne projets",               icone:"\uD83C\uDFAF", couleur:"#48A86E", groupe:"Épargne & Investissement", defaut:false},
+  {id:"investiss",   nom:"Investissements",               icone:"\uD83D\uDCC8", couleur:"#2F8F63", groupe:"Épargne & Investissement", defaut:false},
+
+  /* --- Social & Loisirs --- */
+  {id:"sorties",     nom:"Sorties / Loisirs",             icone:"\uD83C\uDF89", couleur:"#C77BE0", groupe:"Social & Loisirs", defaut:true},
+  {id:"contribsoc",  nom:"Contributions sociales",        icone:"\uD83C\uDF81", couleur:"#E07BA8", groupe:"Social & Loisirs", defaut:true},
+  {id:"aides",       nom:"Aides ponctuelles",             icone:"\uD83D\uDE4F", couleur:"#A79BE8", groupe:"Social & Loisirs", defaut:false},
+  {id:"abonnements", nom:"Abonnements (Netflix, sport…)", icone:"\uD83D\uDCFA", couleur:"#9B7BE0", groupe:"Social & Loisirs", defaut:false}
+];
+var GROUPES = ["Fixes","Vie courante","Épargne & Investissement","Social & Loisirs"];
+var MAX_DOUX = 12; /* F3 : message doux au-delà de 12 rubriques actives */
+
+var TYPES_REVENU = ["Activités secondaires","Prime","Autre"];
+var COULEURS = ["#F2A93B","#E5723B","#F2C94C","#56A8F5","#5FC2C7","#3E7FC1","#3FB27F","#2E9E8F","#C77BE0","#E07BA8"];
+var EMOJIS = ["🏠","🍚","🚕","💡","🚰","📱","💊","🎓","👕","🎉","🐖","🎯","🤝","🏦","🔄","🙏","🔥","🧼","💇","📺","🛡️","⚠️","🚗","✈️","🎁","📚","⚽","💼"];
+
+var CLE = "mondjai.v2";
+var NBSP = "\u00A0";
+
+/* ---------- utilitaires ---------- */
+function uid(){ return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function fmt(n){
+  n = Math.round(Number(n) || 0);
+  var neg = n < 0; n = Math.abs(n);
+  return (neg ? "-" : "") + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
+}
+function fmtF(n){ return fmt(n) + NBSP + "F"; }
+function chiffres(s){ var d = String(s).replace(/[^0-9]/g,""); return d ? parseInt(d,10) : 0; }
+function el(tag, cls, txt){
+  var e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(txt !== undefined && txt !== null) e.textContent = txt;
+  return e;
+}
+
+/* ---------- état ---------- */
+var S = charger();
+var vue = S.onboarded ? "dashboard" : "revenus";
+
+function neuf(){
+  return {
+    version: 2,
+    onboarded: false,
+    jourSalaire: null,
+    revenus: [{id: uid(), libelle: "Salaire net", montant: 0}],
+    rubriques: RUBRIQUES_F3.map(function(r){
+      return {id:r.id, nom:r.nom, icone:r.icone, couleur:r.couleur, groupe:r.groupe,
+              active:!!r.defaut, montant:0, perso:false};
+    })
+  };
+}
+function charger(){
+  try{
+    var brut = localStorage.getItem(CLE);
+    if(brut){
+      var o = JSON.parse(brut);
+      if(o && o.version === 2 && Array.isArray(o.rubriques) && Array.isArray(o.revenus)) return o;
+    }
+  }catch(e){}
+  return neuf();
+}
+function sauver(){
+  try{ localStorage.setItem(CLE, JSON.stringify(S)); }catch(e){}
+}
+
+/* ---------- calculs ---------- */
+function totalRevenus(){
+  return S.revenus.reduce(function(t,r){ return t + (Number(r.montant)||0); }, 0);
+}
+function actives(){
+  return S.rubriques.filter(function(r){ return r.active; });
+}
+function totalReparti(){
+  return actives().reduce(function(t,r){ return t + (Number(r.montant)||0); }, 0);
+}
+function reste(){ return totalRevenus() - totalReparti(); }
+function libelleJour(){
+  if(S.jourSalaire === "dernier") return "le dernier jour du mois";
+  if(S.jourSalaire === 1) return "le 1er de chaque mois";
+  if(S.jourSalaire) return "le " + S.jourSalaire + " de chaque mois";
+  return "—";
+}
+
+/* ---------- champ montant ---------- */
+function champMontant(valeur, onChange){
+  var i = document.createElement("input");
+  i.type = "text";
+  i.inputMode = "numeric";
+  i.className = "money" + (valeur ? "" : " vide");
+  i.value = valeur ? fmt(valeur) : "0";
+  i.setAttribute("aria-label", "Montant en francs CFA");
+  i.addEventListener("focus", function(){ if(chiffres(i.value) === 0) i.value = ""; });
+  i.addEventListener("input", function(){
+    var v = chiffres(i.value);
+    i.value = v ? fmt(v) : "";
+    i.classList.toggle("vide", v === 0);
+    onChange(v);
+  });
+  i.addEventListener("blur", function(){
+    var v = chiffres(i.value);
+    i.value = fmt(v);
+    i.classList.toggle("vide", v === 0);
+  });
+  return i;
+}
+
+/* ---------- rendu général ---------- */
+function render(){
+  var ec = document.getElementById("ecran");
+  var ba = document.getElementById("barre");
+  ec.innerHTML = ""; ba.innerHTML = "";
+  window.scrollTo(0,0);
+  var eb = document.getElementById("eyebrow");
+  if(!S.onboarded){
+    eb.textContent = "Étape " + ({revenus:1, rubriques:2, repartition:3}[vue] || 3) + " sur 3";
+  }else{
+    eb.textContent = ({revenus:"Revenus", rubriques:"Rubriques", repartition:"Répartition", dashboard:"Tableau de bord"})[vue];
+  }
+  if(vue === "revenus") vueRevenus(ec, ba);
+  else if(vue === "rubriques") vueRubriques(ec, ba);
+  else if(vue === "repartition") vueRepartition(ec, ba);
+  else vueDashboard(ec, ba);
+}
+function aller(v){ vue = v; sauver(); render(); }
+
+/* ==============================================================
+   ÉCRAN 1 — Jour de salaire + revenus
+   ============================================================== */
+function vueRevenus(ec, ba){
+  ec.appendChild(el("h1", null, S.onboarded ? "Vos revenus" : "Bienvenue sur MonDjai"));
+  ec.appendChild(el("p", "sub", S.onboarded
+    ? "Modifiez le jour de paie ou vos revenus du mois."
+    : "Deux choses pour commencer : quand vous êtes payé, et combien vous recevez."));
+
+  /* --- jour de salaire --- */
+  ec.appendChild(el("h2", null, "Jour de réception du salaire"));
+  var grille = el("div", "jours");
+  for(var j = 1; j <= 31; j++){
+    (function(jour){
+      var b = el("button", "jour", String(jour));
+      b.type = "button";
+      b.setAttribute("aria-pressed", S.jourSalaire === jour ? "true" : "false");
+      b.addEventListener("click", function(){
+        S.jourSalaire = jour; sauver();
+        grille.querySelectorAll(".jour").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+        bDernier.setAttribute("aria-pressed","false");
+        b.setAttribute("aria-pressed","true");
+        majSuite();
+      });
+      grille.appendChild(b);
+    })(j);
+  }
+  ec.appendChild(grille);
+
+  var bDernier = el("button", "btn jour-dernier", "Dernier jour du mois");
+  bDernier.type = "button";
+  bDernier.setAttribute("aria-pressed", S.jourSalaire === "dernier" ? "true" : "false");
+  bDernier.addEventListener("click", function(){
+    S.jourSalaire = "dernier"; sauver();
+    grille.querySelectorAll(".jour").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+    bDernier.setAttribute("aria-pressed","true");
+    majSuite();
+  });
+  ec.appendChild(bDernier);
+
+  /* --- revenus --- */
+  ec.appendChild(el("h2", null, "Revenus du mois"));
+  var liste = el("div");
+  ec.appendChild(liste);
+
+  function dessinerLignes(){
+    liste.innerHTML = "";
+    S.revenus.forEach(function(rev, idx){
+      var l = el("div", "ligne");
+      var lib = document.createElement("input");
+      lib.type = "text"; lib.className = "lib"; lib.value = rev.libelle;
+      lib.placeholder = "Nom du revenu";
+      lib.setAttribute("aria-label", "Nom du revenu");
+      lib.addEventListener("input", function(){ rev.libelle = lib.value; sauver(); });
+      l.appendChild(lib);
+      l.appendChild(champMontant(rev.montant, function(v){ rev.montant = v; sauver(); majTotal(); }));
+      if(idx > 0){
+        var d = el("button", "del", "×");
+        d.type = "button"; d.title = "Retirer ce revenu";
+        d.setAttribute("aria-label", "Retirer " + (rev.libelle || "ce revenu"));
+        d.addEventListener("click", function(){
+          S.revenus = S.revenus.filter(function(x){ return x.id !== rev.id; });
+          sauver(); dessinerLignes(); majTotal();
+        });
+        l.appendChild(d);
+      }
+      liste.appendChild(l);
+    });
+  }
+  dessinerLignes();
+
+  var bAjout = el("button", "btn btn-ghost", "+ Ajouter un revenu");
+  bAjout.type = "button";
+  var menu = el("div", "menu");
+  menu.hidden = true;
+  TYPES_REVENU.forEach(function(t){
+    var b = el("button", null, t);
+    b.type = "button";
+    b.addEventListener("click", function(){
+      S.revenus.push({id: uid(), libelle: (t === "Autre" ? "" : t), montant: 0});
+      sauver(); menu.hidden = true; dessinerLignes(); majTotal();
+      var champs = liste.querySelectorAll(".lib");
+      if(t === "Autre" && champs.length) champs[champs.length-1].focus();
+    });
+    menu.appendChild(b);
+  });
+  bAjout.addEventListener("click", function(){ menu.hidden = !menu.hidden; });
+  ec.appendChild(bAjout);
+  ec.appendChild(menu);
+
+  var tot = el("div", "total-ligne");
+  tot.appendChild(el("span", "muted small", "Total des revenus"));
+  var totVal = el("span", "big");
+  tot.appendChild(totVal);
+  ec.appendChild(tot);
+
+  /* --- barre --- */
+  var bar = el("div", "sticky"), inn = el("div", "sticky-in");
+  var suite = el("button", "btn btn-primary", S.onboarded ? "Enregistrer" : "Continuer");
+  suite.type = "button";
+  suite.addEventListener("click", function(){
+    sauver();
+    aller(S.onboarded ? "dashboard" : "rubriques");
+  });
+  var aide = el("p", "tiny muted", "");
+  aide.style.margin = "0 0 8px";
+  inn.appendChild(aide); inn.appendChild(suite);
+  bar.appendChild(inn); ba.appendChild(bar);
+
+  function majTotal(){ totVal.textContent = fmtF(totalRevenus()); majSuite(); }
+  function majSuite(){
+    var okJour = S.jourSalaire !== null;
+    var okRev = totalRevenus() > 0;
+    suite.disabled = !(okJour && okRev);
+    aide.textContent = !okJour ? "Choisissez d'abord votre jour de paie."
+                     : !okRev ? "Saisissez au moins un montant."
+                     : "Vous recevez " + fmtF(totalRevenus()) + ", " + libelleJour() + ".";
+  }
+  majTotal();
+}
+
+/* ==============================================================
+   ÉCRAN 2 — Rubriques
+   ============================================================== */
+function vueRubriques(ec, ba){
+  ec.appendChild(el("h1", null, "Vos rubriques"));
+  ec.appendChild(el("p", "sub", "Cochez les enveloppes que vous utilisez. Vous pourrez en ajouter ou en retirer plus tard."));
+
+  var liste = el("div");
+  ec.appendChild(liste);
+
+  function dessiner(){
+    liste.innerHTML = "";
+    S.rubriques.forEach(function(r){
+      var b = el("button", "rub");
+      b.type = "button";
+      b.setAttribute("aria-pressed", r.active ? "true" : "false");
+      var ic = el("span", "ico", r.icone);
+      ic.style.background = "rgba(255,255,255,.05)";
+      ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+      b.appendChild(ic);
+      b.appendChild(el("span", "nom", r.nom));
+      if(r.perso) b.appendChild(el("span", "perso-tag", "perso"));
+      b.appendChild(el("span", "check", "✓"));
+      b.addEventListener("click", function(){
+        r.active = !r.active;
+        if(!r.active) r.montant = 0;
+        sauver();
+        b.setAttribute("aria-pressed", r.active ? "true" : "false");
+        majCompte();
+      });
+      liste.appendChild(b);
+    });
+  }
+  dessiner();
+
+  /* --- création --- */
+  ec.appendChild(el("h2", null, "Créer une rubrique"));
+  var bOuvrir = el("button", "btn btn-ghost", "+ Nouvelle rubrique personnalisée");
+  bOuvrir.type = "button";
+  ec.appendChild(bOuvrir);
+
+  var form = el("div", "card");
+  form.hidden = true;
+  form.style.marginTop = "10px";
+
+  var fNom = el("div", "field");
+  fNom.appendChild(el("label", null, "Nom"));
+  var iNom = document.createElement("input");
+  iNom.type = "text"; iNom.className = "input"; iNom.placeholder = "Ex. : Cotisation association";
+  iNom.maxLength = 40;
+  fNom.appendChild(iNom); form.appendChild(fNom);
+
+  var choixEmoji = EMOJIS[0];
+  var fEm = el("div", "field");
+  fEm.appendChild(el("label", null, "Icône"));
+  var wEm = el("div", "emojis");
+  EMOJIS.forEach(function(e, i){
+    var b = el("button", "em", e);
+    b.type = "button";
+    b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.setAttribute("aria-label", "Icône " + e);
+    b.addEventListener("click", function(){
+      choixEmoji = e;
+      wEm.querySelectorAll(".em").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+      b.setAttribute("aria-pressed","true");
+    });
+    wEm.appendChild(b);
+  });
+  fEm.appendChild(wEm); form.appendChild(fEm);
+
+  var choixCoul = COULEURS[0];
+  var fC = el("div", "field");
+  fC.appendChild(el("label", null, "Couleur"));
+  var wC = el("div", "swatches");
+  COULEURS.forEach(function(c, i){
+    var b = el("button", "sw");
+    b.type = "button"; b.style.background = c;
+    b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.setAttribute("aria-label", "Couleur " + (i+1));
+    b.addEventListener("click", function(){
+      choixCoul = c;
+      wC.querySelectorAll(".sw").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+      b.setAttribute("aria-pressed","true");
+    });
+    wC.appendChild(b);
+  });
+  fC.appendChild(wC); form.appendChild(fC);
+
+  var fG = el("div", "field");
+  fG.appendChild(el("label", null, "Groupe"));
+  var sG = document.createElement("select");
+  sG.className = "input";
+  GROUPES.forEach(function(g){
+    var o = document.createElement("option"); o.value = g; o.textContent = g; sG.appendChild(o);
+  });
+  fG.appendChild(sG); form.appendChild(fG);
+
+  var err = el("p", "tiny", "");
+  err.style.color = "var(--red)"; err.style.margin = "0 0 10px";
+  form.appendChild(err);
+
+  var rb = el("div", "row-btns");
+  var bAnn = el("button", "btn btn-ghost", "Annuler"); bAnn.type = "button";
+  var bCre = el("button", "btn btn-primary", "Créer la rubrique"); bCre.type = "button";
+  rb.appendChild(bAnn); rb.appendChild(bCre); form.appendChild(rb);
+  ec.appendChild(form);
+
+  bOuvrir.addEventListener("click", function(){
+    form.hidden = !form.hidden;
+    if(!form.hidden) iNom.focus();
+  });
+  bAnn.addEventListener("click", function(){ form.hidden = true; err.textContent = ""; });
+  bCre.addEventListener("click", function(){
+    var nom = iNom.value.trim();
+    if(!nom){ err.textContent = "Donnez un nom à la rubrique."; iNom.focus(); return; }
+    var doublon = S.rubriques.some(function(r){ return r.nom.toLowerCase() === nom.toLowerCase(); });
+    if(doublon){ err.textContent = "Cette rubrique existe déjà."; return; }
+    S.rubriques.push({
+      id: uid(), nom: nom, icone: choixEmoji, couleur: choixCoul,
+      groupe: sG.value, active: true, montant: 0, perso: true
+    });
+    sauver();
+    iNom.value = ""; err.textContent = ""; form.hidden = true;
+    dessiner(); majCompte();
+    try{ if(liste.lastChild.scrollIntoView) liste.lastChild.scrollIntoView({block:"center"}); }catch(e){}
+  });
+
+  /* --- barre --- */
+  var bar = el("div", "sticky"), inn = el("div", "sticky-in");
+  var doux = el("div", "doux", "Trop de rubriques tue le suivi.");
+  doux.hidden = true;
+  var info = el("p", "tiny muted", "");
+  info.style.margin = "0 0 8px";
+  var rowB = el("div", "row-btns");
+  if(!S.onboarded){
+    var bRet = el("button", "btn btn-ghost", "Retour"); bRet.type = "button";
+    bRet.addEventListener("click", function(){ aller("revenus"); });
+    rowB.appendChild(bRet);
+  }
+  var bSuite = el("button", "btn btn-primary", S.onboarded ? "Enregistrer" : "Continuer");
+  bSuite.type = "button";
+  bSuite.addEventListener("click", function(){ sauver(); aller(S.onboarded ? "dashboard" : "repartition"); });
+  rowB.appendChild(bSuite);
+  inn.appendChild(doux); inn.appendChild(info); inn.appendChild(rowB);
+  bar.appendChild(inn); ba.appendChild(bar);
+
+  function majCompte(){
+    var n = actives().length;
+    info.textContent = n === 0 ? "Cochez au moins une rubrique." : n + (n > 1 ? " rubriques sélectionnées" : " rubrique sélectionnée");
+    bSuite.disabled = n === 0;
+    /* F3 : message doux, jamais bloquant */
+    doux.hidden = n <= MAX_DOUX;
+  }
+  majCompte();
+}
+
+/* ==============================================================
+   ÉCRAN 3 — Répartition
+   ============================================================== */
+function vueRepartition(ec, ba){
+  ec.appendChild(el("h1", null, "Répartir vos revenus"));
+  ec.appendChild(el("p", "sub", "Donnez un montant à chaque enveloppe. Ce qui n'est pas réparti reste dans « Non affecté »."));
+
+  var tete = el("div", "card");
+  var tl = el("div");
+  tl.style.display = "flex"; tl.style.justifyContent = "space-between"; tl.style.alignItems = "baseline";
+  tl.appendChild(el("span", "muted small", "Total à répartir"));
+  tl.appendChild(el("span", "big", fmtF(totalRevenus())));
+  tete.appendChild(tl);
+  tete.appendChild(el("div", "tiny muted", "Reçu " + libelleJour()));
+  ec.appendChild(tete);
+
+  var champs = {};
+  var pcts = {};
+  var liste = el("div");
+  liste.style.marginTop = "14px";
+  actives().forEach(function(r){
+    var row = el("div", "repart");
+    row.style.borderLeftColor = r.couleur;
+    var ic = el("span", "ico", r.icone);
+    row.appendChild(ic);
+    var bloc = el("div");
+    bloc.style.flex = "1"; bloc.style.minWidth = "0";
+    bloc.appendChild(el("div", "nom", r.nom));
+    var p = el("span", "pct", "0 %");
+    bloc.appendChild(p);
+    pcts[r.id] = p;
+    row.appendChild(bloc);
+
+    var bReste = el("button", "reste-ici", "+ reste");
+    bReste.type = "button";
+    bReste.title = "Mettre tout le reste dans cette rubrique";
+    row.appendChild(bReste);
+
+    var champ = champMontant(r.montant, function(v){ r.montant = v; sauver(); maj(); });
+    champs[r.id] = champ;
+    row.appendChild(champ);
+
+    bReste.addEventListener("click", function(){
+      var rst = reste();
+      if(rst <= 0) return;
+      r.montant = (Number(r.montant)||0) + rst;
+      sauver();
+      champ.value = fmt(r.montant);
+      champ.classList.remove("vide");
+      maj();
+    });
+    liste.appendChild(row);
+  });
+  ec.appendChild(liste);
+
+  /* --- barre --- */
+  var bar = el("div", "sticky"), inn = el("div", "sticky-in");
+  var banniere = el("div", "banner");
+  banniere.hidden = true;
+  var jw = el("div", "jauge-wrap");
+  var jauge = el("div", "jauge");
+  jw.appendChild(jauge);
+  var rl = el("div", "reste-line");
+  var gauche = el("div");
+  gauche.appendChild(el("div", "lab", "Reste à répartir"));
+  var val = el("div", "reste-val");
+  gauche.appendChild(val);
+  rl.appendChild(gauche);
+  var droite = el("div", "tiny muted num");
+  droite.style.textAlign = "right";
+  rl.appendChild(droite);
+
+  var rowB = el("div", "row-btns");
+  if(!S.onboarded){
+    var bRet = el("button", "btn btn-ghost", "Retour"); bRet.type = "button";
+    bRet.addEventListener("click", function(){ aller("rubriques"); });
+    rowB.appendChild(bRet);
+  }
+  var bFin = el("button", "btn btn-primary", S.onboarded ? "Enregistrer" : "Voir mon tableau de bord");
+  bFin.type = "button";
+  bFin.addEventListener("click", function(){
+    S.onboarded = true; sauver(); aller("dashboard");
+  });
+  rowB.appendChild(bFin);
+
+  inn.appendChild(banniere); inn.appendChild(rl); inn.appendChild(jw); inn.appendChild(rowB);
+  bar.appendChild(inn); ba.appendChild(bar);
+
+  function maj(){
+    var tot = totalRevenus(), rep = totalReparti(), rst = tot - rep;
+    actives().forEach(function(r){
+      var p = tot > 0 ? Math.round((Number(r.montant)||0) / tot * 100) : 0;
+      pcts[r.id].textContent = p + "%";
+    });
+    droite.textContent = "Réparti : " + fmtF(rep) + " / " + fmtF(tot);
+    if(rst < 0){
+      val.textContent = fmtF(0);
+      val.className = "reste-val deficit";
+      banniere.hidden = false;
+      banniere.textContent = "Déficit à combler : " + fmtF(-rst);
+    }else{
+      val.textContent = fmtF(rst);
+      val.className = "reste-val" + (rst === 0 ? " ok" : "");
+      banniere.hidden = true;
+    }
+    dessinerJauge(jauge);
+  }
+  maj();
+}
+
+/* --- jauge segmentée (élément signature) --- */
+function dessinerJauge(jauge){
+  jauge.innerHTML = "";
+  var tot = totalRevenus(), rep = totalReparti();
+  var base = Math.max(tot, rep);
+  if(base <= 0){ jauge.appendChild(el("div", "seg seg-vide")); return; }
+  actives().forEach(function(r){
+    var m = Number(r.montant) || 0;
+    if(m <= 0) return;
+    var s = el("div", "seg");
+    s.style.width = (m / base * 100) + "%";
+    s.style.background = rep > tot ? "var(--red)" : r.couleur;
+    jauge.appendChild(s);
+  });
+  if(rep < tot){
+    var v = el("div", "seg seg-vide");
+    v.style.flex = "none";
+    v.style.width = ((tot - rep) / base * 100) + "%";
+    jauge.appendChild(v);
+  }
+}
+
+/* ==============================================================
+   ÉCRAN 4 — Tableau de bord
+   ============================================================== */
+function vueDashboard(ec, ba){
+  var tot = totalRevenus(), rep = totalReparti(), rst = tot - rep;
+
+  ec.appendChild(el("h1", null, "Tableau de bord"));
+  ec.appendChild(el("p", "sub", "Salaire reçu " + libelleJour() + "."));
+
+  var tete = el("div", "tb-tete");
+  tete.appendChild(el("div", "lab tiny muted", "REVENUS DU MOIS"));
+  tete.appendChild(el("div", "big", fmtF(tot)));
+  var j = el("div", "jauge");
+  j.style.marginTop = "12px";
+  tete.appendChild(j);
+  dessinerJauge(j);
+  var sousT = el("div", "tiny muted");
+  sousT.style.marginTop = "8px";
+  sousT.textContent = "Réparti : " + fmtF(rep) + "  ·  " + (rst >= 0 ? "Non affecté : " + fmtF(rst) : "Dépassement : " + fmtF(-rst));
+  tete.appendChild(sousT);
+  ec.appendChild(tete);
+
+  if(rst < 0){
+    var b = el("div", "banner", "Déficit à combler : " + fmtF(-rst));
+    ec.appendChild(b);
+  }
+
+  ec.appendChild(el("h2", null, "Rubriques"));
+  var card = el("div", "card");
+  var act = actives();
+  if(act.length === 0){
+    card.appendChild(el("div", "vide-msg", "Aucune rubrique active. Ouvrez « Rubriques » pour en choisir."));
+  }else{
+    act.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); }).forEach(function(r){
+      var l = el("div", "tb-ligne");
+      var p = el("span", "pastille");
+      p.style.background = r.couleur;
+      l.appendChild(p);
+      l.appendChild(el("span", "ico", r.icone));
+      l.appendChild(el("span", "nom", r.nom));
+      var m = el("div", "tb-mont", fmtF(r.montant));
+      var pc = tot > 0 ? Math.round((Number(r.montant)||0) / tot * 100) : 0;
+      m.appendChild(el("small", null, pc + "% des revenus"));
+      l.appendChild(m);
+      card.appendChild(l);
+    });
+  }
+  /* Non affecté */
+  var l2 = el("div", "tb-ligne");
+  var p2 = el("span", "pastille");
+  p2.style.background = "var(--muted)";
+  l2.appendChild(p2);
+  l2.appendChild(el("span", "ico", "🗂️"));
+  l2.appendChild(el("span", "nom", "Non affecté"));
+  var m2 = el("div", "tb-mont", fmtF(Math.max(0, rst)));
+  m2.appendChild(el("small", null, "reste disponible"));
+  l2.appendChild(m2);
+  card.appendChild(l2);
+  ec.appendChild(card);
+
+  ec.appendChild(el("h2", null, "Modifier"));
+  var r1 = el("div", "row-btns");
+  var b1 = el("button", "btn", "Répartition"); b1.type = "button";
+  b1.addEventListener("click", function(){ aller("repartition"); });
+  var b2 = el("button", "btn", "Rubriques"); b2.type = "button";
+  b2.addEventListener("click", function(){ aller("rubriques"); });
+  r1.appendChild(b1); r1.appendChild(b2);
+  ec.appendChild(r1);
+  var b3 = el("button", "btn", "Revenus et jour de paie"); b3.type = "button";
+  b3.style.marginTop = "8px";
+  b3.addEventListener("click", function(){ aller("revenus"); });
+  ec.appendChild(b3);
+
+  var b4 = el("button", "btn btn-danger", "Réinitialiser MonDjai"); b4.type = "button";
+  b4.style.marginTop = "26px";
+  b4.addEventListener("click", function(){
+    if(confirm("Effacer toutes vos données MonDjai sur cet appareil ? Cette action est définitive.")){
+      try{ localStorage.removeItem(CLE); }catch(e){}
+      S = neuf(); vue = "revenus"; render();
+    }
+  });
+  ec.appendChild(b4);
+
+  var note = el("p", "tiny muted", "Vos données restent sur cet appareil.");
+  note.style.margin = "14px 0 0";
+  ec.appendChild(note);
+}
+
+/* ---------- démarrage ---------- */
+render();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("./sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
