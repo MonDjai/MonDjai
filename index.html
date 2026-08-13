@@ -17,6 +17,7 @@
    MonDjai — feuille de style (tout est dans ce fichier)
    ============================================================ */
 :root{
+  color-scheme:dark;
   --bg:#0F1218;
   --surface:#171C25;
   --surface-2:#1F2632;
@@ -26,6 +27,9 @@
   --gold:#F2A93B;
   --gold-soft:rgba(242,169,59,.13);
   --green:#3FB27F;
+  --green-soft:rgba(63,178,127,.13);
+  --orange:#E8901F;
+  --orange-soft:rgba(232,144,31,.14);
   --red:#E5484D;
   --red-soft:rgba(229,72,77,.13);
   --r:14px;
@@ -215,6 +219,111 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 .tb-mont small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
 .vide-msg{color:var(--muted);font-size:14px;padding:14px 0}
 
+/* --- Sprint 2 : jauges par rubrique --- */
+.jauge-r{height:9px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.jauge-r > i{display:block;height:100%;border-radius:99px;transition:width .2s ease;min-width:0}
+.env{
+  display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);padding:12px;margin-bottom:8px
+}
+.env:active{transform:translateY(1px)}
+.env.alerte{border-color:rgba(229,72,77,.4)}
+.env-haut{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.env-haut .nom{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.env-mont{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;flex:none}
+.env-mont small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.env-bas{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:7px;font-size:12px;font-variant-numeric:tabular-nums}
+.c-vert{color:var(--green)}
+.c-orange{color:var(--orange)}
+.c-rouge{color:var(--red)}
+.c-neutre{color:var(--muted)}
+.chev{color:var(--muted);font-size:18px;flex:none;line-height:1}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 7px;flex:none}
+
+/* --- bouton flottant « + » --- */
+.fab{
+  position:fixed;z-index:40;right:20px;bottom:calc(22px + env(safe-area-inset-bottom));
+  width:62px;height:62px;border-radius:99px;border:0;background:var(--gold);color:#141414;
+  font-size:32px;font-weight:800;line-height:1;display:grid;place-items:center;
+  box-shadow:0 8px 24px rgba(0,0,0,.45)
+}
+.fab:active{transform:translateY(1px)}
+@media (min-width:620px){ .fab{right:calc(50% - 280px + 8px)} }
+
+/* --- feuille plein écran (saisie de dépense) --- */
+.sheet{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-top{
+  position:sticky;top:0;z-index:2;background:rgba(15,18,24,.96);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)
+}
+.sheet-top-in{max-width:560px;margin:0 auto;padding:10px var(--pad);display:flex;align-items:center;gap:10px}
+.sheet-titre{font-weight:800;font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.icon-btn{
+  width:38px;height:38px;flex:none;border-radius:11px;border:1px solid var(--line);
+  background:var(--surface-2);display:grid;place-items:center;font-size:19px;line-height:1;padding:0
+}
+.sheet-body{max-width:560px;margin:0 auto;padding:18px var(--pad) 120px}
+
+.grille-rub{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.tuile{
+  display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--surface);
+  border:1px solid var(--line);border-radius:14px;padding:12px 6px 10px;min-height:104px
+}
+.tuile:active{transform:translateY(1px)}
+.tuile .ico{width:44px;height:44px;font-size:22px}
+.tuile .t-nom{
+  font-size:11.5px;line-height:1.15;font-weight:600;text-align:center;width:100%;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.tuile .jauge-r{width:100%;height:5px;margin-top:auto}
+
+.montant-xl{
+  width:100%;background:transparent;border:0;border-bottom:2px solid var(--line);
+  font-size:40px;font-weight:800;letter-spacing:-.03em;text-align:center;
+  font-variant-numeric:tabular-nums;padding:4px 0 8px
+}
+.montant-xl:focus{border-bottom-color:var(--gold);outline:none}
+.devise{text-align:center;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.14em;margin:6px 0 18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  border:1px solid var(--line);background:var(--surface-2);border-radius:99px;
+  padding:9px 13px;font-size:13px;font-weight:600
+}
+.chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#141414}
+.info-env{
+  border-radius:11px;padding:10px 12px;font-size:13px;font-weight:600;margin:0 0 16px;
+  background:var(--surface);border:1px solid var(--line);color:var(--muted)
+}
+.info-env.vert{background:var(--green-soft);border-color:rgba(63,178,127,.3);color:var(--green)}
+.info-env.orange{background:var(--orange-soft);border-color:rgba(232,144,31,.3);color:var(--orange)}
+.info-env.rouge{background:var(--red-soft);border-color:rgba(229,72,77,.3);color:var(--red)}
+.rub-choisie{
+  display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r);padding:10px 12px;margin-bottom:18px;width:100%;text-align:left
+}
+.rub-choisie .nom{flex:1;min-width:0;font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rub-choisie .chg{font-size:12px;color:var(--gold);font-weight:700;flex:none}
+
+/* --- liste des dépenses --- */
+.dep{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+.dep:last-child{border-bottom:0}
+.dep-main{
+  display:flex;align-items:center;gap:12px;flex:1;min-width:0;background:transparent;border:0;
+  padding:12px 0;text-align:left
+}
+.d-txt{flex:1;min-width:0}
+.d-lib{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.d-date{font-size:12px;color:var(--muted)}
+.d-mont{font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+
+/* --- message de confirmation --- */
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));
+  z-index:90;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;
+  padding:11px 18px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.45);
+  transition:opacity .25s ease
+}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -233,7 +342,10 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 <script>
 "use strict";
 /* ==============================================================
-   MonDjai — Sprint 1
+   MonDjai — Sprint 2
+   (Sprint 1 : jour de paie, revenus, rubriques, répartition)
+   (Sprint 2 : saisie de dépense en 3 taps, tableau de bord à
+    jauges, détail des dépenses par rubrique)
    Tout est local : aucun appel réseau, aucune bibliothèque.
    ============================================================== */
 
@@ -282,6 +394,7 @@ var MAX_DOUX = 12; /* F3 : message doux au-delà de 12 rubriques actives */
 var TYPES_REVENU = ["Activités secondaires","Prime","Autre"];
 var COULEURS = ["#F2A93B","#E5723B","#F2C94C","#56A8F5","#5FC2C7","#3E7FC1","#3FB27F","#2E9E8F","#C77BE0","#E07BA8"];
 var EMOJIS = ["🏠","🍚","🚕","💡","🚰","📱","💊","🎓","👕","🎉","🐖","🎯","🤝","🏦","🔄","🙏","🔥","🧼","💇","📺","🛡️","⚠️","🚗","✈️","🎁","📚","⚽","💼"];
+var MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 
 var CLE = "mondjai.v2";
 var NBSP = "\u00A0";
@@ -294,6 +407,7 @@ function fmt(n){
   return (neg ? "-" : "") + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, NBSP);
 }
 function fmtF(n){ return fmt(n) + NBSP + "F"; }
+function pct(n){ return Math.round(Number(n)||0) + NBSP + "%"; }
 function chiffres(s){ var d = String(s).replace(/[^0-9]/g,""); return d ? parseInt(d,10) : 0; }
 function el(tag, cls, txt){
   var e = document.createElement(tag);
@@ -302,20 +416,65 @@ function el(tag, cls, txt){
   return e;
 }
 
+/* ---------- dates ---------- */
+function p2(n){ return (n < 10 ? "0" : "") + n; }
+function iso(d){ return d.getFullYear() + "-" + p2(d.getMonth()+1) + "-" + p2(d.getDate()); }
+function aujourdhui(){ return iso(new Date()); }
+function deIso(s){
+  var p = String(s || "").split("-");
+  var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  return isNaN(d.getTime()) ? new Date() : d;
+}
+function dateLisible(s){
+  if(s === aujourdhui()) return "Aujourd'hui";
+  var h = new Date(); h.setDate(h.getDate() - 1);
+  if(s === iso(h)) return "Hier";
+  var d = deIso(s);
+  var txt = d.getDate() + " " + MOIS[d.getMonth()];
+  if(d.getFullYear() !== new Date().getFullYear()) txt += " " + d.getFullYear();
+  return txt;
+}
+function dateCourte(s){
+  var d = deIso(s);
+  return d.getDate() + " " + MOIS[d.getMonth()].slice(0,4) + ".";
+}
+/* Prochaine paie : le jour choisi, ramené au dernier jour si le mois est plus court */
+function paieDuMois(annee, mois){
+  var dernier = new Date(annee, mois + 1, 0).getDate();
+  var j = (S.jourSalaire === "dernier") ? dernier : Math.min(Number(S.jourSalaire) || 1, dernier);
+  return new Date(annee, mois, j);
+}
+function prochainePaie(){
+  if(S.jourSalaire === null || S.jourSalaire === undefined) return null;
+  var t = new Date(); t.setHours(0,0,0,0);
+  var c = paieDuMois(t.getFullYear(), t.getMonth());
+  if(c.getTime() <= t.getTime()) c = paieDuMois(t.getFullYear(), t.getMonth() + 1);
+  return c;
+}
+function joursAvantPaie(){
+  var p = prochainePaie();
+  if(!p) return null;
+  var t = new Date(); t.setHours(0,0,0,0);
+  return Math.max(1, Math.round((p.getTime() - t.getTime()) / 86400000));
+}
+function motJours(n){ return n + (n > 1 ? " jours" : " jour"); }
+
 /* ---------- état ---------- */
 var S = charger();
 var vue = S.onboarded ? "dashboard" : "revenus";
+var rubOuverte = null; /* id de la rubrique affichée en détail */
 
 function neuf(){
   return {
-    version: 2,
+    version: 3,
     onboarded: false,
     jourSalaire: null,
     revenus: [{id: uid(), libelle: "Salaire net", montant: 0}],
     rubriques: RUBRIQUES_F3.map(function(r){
       return {id:r.id, nom:r.nom, icone:r.icone, couleur:r.couleur, groupe:r.groupe,
               active:!!r.defaut, montant:0, perso:false};
-    })
+    }),
+    depenses: []
   };
 }
 function charger(){
@@ -323,7 +482,12 @@ function charger(){
     var brut = localStorage.getItem(CLE);
     if(brut){
       var o = JSON.parse(brut);
-      if(o && o.version === 2 && Array.isArray(o.rubriques) && Array.isArray(o.revenus)) return o;
+      if(o && (o.version === 2 || o.version === 3) && Array.isArray(o.rubriques) && Array.isArray(o.revenus)){
+        /* migration douce Sprint 1 → Sprint 2 : on ne perd rien */
+        if(!Array.isArray(o.depenses)) o.depenses = [];
+        o.version = 3;
+        return o;
+      }
     }
   }catch(e){}
   return neuf();
@@ -349,6 +513,53 @@ function libelleJour(){
   if(S.jourSalaire) return "le " + S.jourSalaire + " de chaque mois";
   return "—";
 }
+function rubriqueParId(id){
+  for(var i = 0; i < S.rubriques.length; i++){ if(S.rubriques[i].id === id) return S.rubriques[i]; }
+  return null;
+}
+function depensesDe(id){
+  return S.depenses.filter(function(d){ return d.rubrique === id; });
+}
+function depenseRub(id){
+  return depensesDe(id).reduce(function(t,d){ return t + (Number(d.montant)||0); }, 0);
+}
+function totalDepense(){
+  return S.depenses.reduce(function(t,d){ return t + (Number(d.montant)||0); }, 0);
+}
+function disponible(){ return totalRevenus() - totalDepense(); }
+/* Tri : les plus récentes d'abord */
+function triDepenses(liste){
+  return liste.slice().sort(function(a,b){
+    if(a.date === b.date) return (b.cree||0) - (a.cree||0);
+    return a.date < b.date ? 1 : -1;
+  });
+}
+/* F5 : vert < 70 % · orange 70–99 % · rouge en dépassement */
+function etatJauge(depense, affecte){
+  if(affecte <= 0) return depense > 0 ? "rouge" : "neutre";
+  var p = depense / affecte * 100;
+  if(p > 100) return "rouge";
+  if(p >= 70) return "orange";
+  return "vert";
+}
+function couleurEtat(e){
+  return e === "rouge" ? "var(--red)" : e === "orange" ? "var(--orange)"
+       : e === "vert" ? "var(--green)" : "var(--muted)";
+}
+function classeEtat(e){
+  return e === "rouge" ? "c-rouge" : e === "orange" ? "c-orange" : e === "vert" ? "c-vert" : "c-neutre";
+}
+/* petite jauge : dépensé / affecté */
+function jaugeRub(depense, affecte){
+  var wrap = el("div", "jauge-r");
+  var b = document.createElement("i");
+  var base = Math.max(affecte, depense, 1);
+  var p = Math.min(100, depense / base * 100);
+  b.style.width = (depense > 0 ? Math.max(p, 3) : 0) + "%";
+  b.style.background = couleurEtat(etatJauge(depense, affecte));
+  wrap.appendChild(b);
+  return wrap;
+}
 
 /* ---------- champ montant ---------- */
 function champMontant(valeur, onChange){
@@ -373,6 +584,14 @@ function champMontant(valeur, onChange){
   return i;
 }
 
+/* ---------- petit message de confirmation ---------- */
+function toast(txt){
+  var t = el("div", "toast", txt);
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity = "0"; }, 1300);
+  setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 1700);
+}
+
 /* ---------- rendu général ---------- */
 function render(){
   var ec = document.getElementById("ecran");
@@ -383,14 +602,17 @@ function render(){
   if(!S.onboarded){
     eb.textContent = "Étape " + ({revenus:1, rubriques:2, repartition:3}[vue] || 3) + " sur 3";
   }else{
-    eb.textContent = ({revenus:"Revenus", rubriques:"Rubriques", repartition:"Répartition", dashboard:"Tableau de bord"})[vue];
+    eb.textContent = ({revenus:"Revenus", rubriques:"Rubriques", repartition:"Répartition",
+                       dashboard:"Tableau de bord", rubrique:"Enveloppe"})[vue] || "Tableau de bord";
   }
   if(vue === "revenus") vueRevenus(ec, ba);
   else if(vue === "rubriques") vueRubriques(ec, ba);
   else if(vue === "repartition") vueRepartition(ec, ba);
+  else if(vue === "rubrique") vueRubriqueDetail(ec, ba);
   else vueDashboard(ec, ba);
 }
 function aller(v){ vue = v; sauver(); render(); }
+function ouvrirRubrique(id){ rubOuverte = id; aller("rubrique"); }
 
 /* ==============================================================
    ÉCRAN 1 — Jour de salaire + revenus
@@ -698,8 +920,8 @@ function vueRepartition(ec, ba){
     bloc.style.flex = "1"; bloc.style.minWidth = "0";
     bloc.appendChild(el("div", "nom", r.nom));
     var p = el("span", "pct", "0 %");
-    bloc.appendChild(p);
     pcts[r.id] = p;
+    bloc.appendChild(p);
     row.appendChild(bloc);
 
     var bReste = el("button", "reste-ici", "+ reste");
@@ -802,57 +1024,338 @@ function dessinerJauge(jauge){
 }
 
 /* ==============================================================
-   ÉCRAN 4 — Tableau de bord
+   SPRINT 2 — Saisie d'une dépense en 3 taps (F4)
+   1) bouton « + » flottant  2) grille des rubriques
+   3) montant (+ libellé facultatif + date) → validation
+   ============================================================== */
+var feuille = null; /* feuille plein écran ouverte, ou null */
+
+function boutonPlus(parent, rubriquePrechoisie){
+  var f = el("button", "fab", "+");
+  f.type = "button";
+  f.setAttribute("aria-label", "Ajouter une dépense");
+  f.addEventListener("click", function(){
+    ouvrirDepense({rubrique: rubriquePrechoisie || null});
+  });
+  parent.appendChild(f);
+  return f;
+}
+
+function fermerFeuille(viaRetour){
+  if(!feuille) return;
+  if(feuille.parentNode) feuille.parentNode.removeChild(feuille);
+  feuille = null;
+  document.body.style.overflow = "";
+  if(!viaRetour){ try{ history.back(); }catch(e){} }
+}
+window.addEventListener("popstate", function(){
+  if(feuille) fermerFeuille(true);
+});
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && feuille) fermerFeuille(false);
+});
+
+function ouvrirDepense(opts){
+  opts = opts || {};
+  var edition = opts.edit || null;
+  var etat = {
+    rubrique: edition ? edition.rubrique : (opts.rubrique || null),
+    montant:  edition ? (Number(edition.montant)||0) : 0,
+    libelle:  edition ? (edition.libelle || "") : "",
+    date:     edition ? edition.date : aujourdhui()
+  };
+
+  var sh = el("div", "sheet");
+  sh.setAttribute("role", "dialog");
+  sh.setAttribute("aria-modal", "true");
+
+  var top = el("div", "sheet-top");
+  var topIn = el("div", "sheet-top-in");
+  var bRetour = el("button", "icon-btn", "‹");
+  bRetour.type = "button"; bRetour.setAttribute("aria-label", "Retour aux rubriques");
+  var titre = el("div", "sheet-titre", edition ? "Modifier la dépense" : "Nouvelle dépense");
+  var bFermer = el("button", "icon-btn", "×");
+  bFermer.type = "button"; bFermer.setAttribute("aria-label", "Fermer");
+  bFermer.addEventListener("click", function(){ fermerFeuille(false); });
+  bRetour.addEventListener("click", function(){ etat.rubrique = null; dessiner(); });
+  topIn.appendChild(bRetour); topIn.appendChild(titre); topIn.appendChild(bFermer);
+  top.appendChild(topIn);
+  sh.appendChild(top);
+
+  var body = el("div", "sheet-body");
+  sh.appendChild(body);
+
+  document.body.appendChild(sh);
+  document.body.style.overflow = "hidden";
+  feuille = sh;
+  try{ history.pushState({mdFeuille:1}, ""); }catch(e){}
+
+  function dessiner(){
+    body.innerHTML = "";
+    bRetour.hidden = (etat.rubrique === null);
+    if(etat.rubrique === null) etapeGrille(); else etapeMontant();
+  }
+
+  /* ---- Tap 2 : la grille des rubriques ---- */
+  function etapeGrille(){
+    var act = actives();
+    body.appendChild(el("p", "sub", act.length ? "Dans quelle enveloppe ?" : "Aucune enveloppe active pour l'instant."));
+    if(!act.length){
+      var b = el("button", "btn", "Choisir mes rubriques");
+      b.type = "button";
+      b.addEventListener("click", function(){ fermerFeuille(false); aller("rubriques"); });
+      body.appendChild(b);
+      return;
+    }
+    var g = el("div", "grille-rub");
+    act.forEach(function(r){
+      var t = el("button", "tuile");
+      t.type = "button";
+      var ic = el("span", "ico", r.icone);
+      ic.style.background = "rgba(255,255,255,.05)";
+      ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+      t.appendChild(ic);
+      t.appendChild(el("span", "t-nom", r.nom));
+      t.appendChild(jaugeRub(depenseRub(r.id), Number(r.montant)||0));
+      t.addEventListener("click", function(){ etat.rubrique = r.id; dessiner(); });
+      g.appendChild(t);
+    });
+    body.appendChild(g);
+  }
+
+  /* ---- Tap 3 : montant, libellé facultatif, date ---- */
+  function etapeMontant(){
+    var r = rubriqueParId(etat.rubrique);
+    if(!r){ etat.rubrique = null; dessiner(); return; }
+
+    /* rappel de l'enveloppe choisie (retap = changer) */
+    var choisie = el("button", "rub-choisie");
+    choisie.type = "button";
+    var ic = el("span", "ico", r.icone);
+    ic.style.background = "rgba(255,255,255,.05)";
+    ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+    choisie.appendChild(ic);
+    choisie.appendChild(el("span", "nom", r.nom));
+    choisie.appendChild(el("span", "chg", "Changer"));
+    choisie.addEventListener("click", function(){ etat.rubrique = null; dessiner(); });
+    body.appendChild(choisie);
+
+    /* montant */
+    var im = document.createElement("input");
+    im.type = "text"; im.inputMode = "numeric";
+    im.className = "montant-xl";
+    im.value = etat.montant ? fmt(etat.montant) : "";
+    im.placeholder = "0";
+    im.setAttribute("aria-label", "Montant de la dépense en francs CFA");
+    im.addEventListener("input", function(){
+      var v = chiffres(im.value);
+      im.value = v ? fmt(v) : "";
+      etat.montant = v;
+      majInfo();
+    });
+    body.appendChild(im);
+    body.appendChild(el("div", "devise", "FRANCS CFA"));
+
+    /* information sur l'enveloppe — on informe, on ne bloque jamais */
+    var info = el("div", "info-env");
+    body.appendChild(info);
+
+    /* libellé facultatif */
+    var fL = el("div", "field");
+    fL.appendChild(el("label", null, "Libellé (facultatif)"));
+    var iL = document.createElement("input");
+    iL.type = "text"; iL.className = "input"; iL.maxLength = 60;
+    iL.placeholder = "Ex. : gbaka, marché, taxi…";
+    iL.value = etat.libelle;
+    iL.addEventListener("input", function(){ etat.libelle = iL.value; });
+    fL.appendChild(iL);
+    body.appendChild(fL);
+
+    /* date : aujourd'hui par défaut, modifiable */
+    var fD = el("div", "field");
+    fD.appendChild(el("label", null, "Date"));
+    var chips = el("div", "chips");
+    chips.style.marginBottom = "8px";
+    var hier = new Date(); hier.setDate(hier.getDate() - 1);
+    var raccourcis = [{lab:"Aujourd'hui", val: aujourdhui()}, {lab:"Hier", val: iso(hier)}];
+    var iD = document.createElement("input");
+    iD.type = "date"; iD.className = "input"; iD.value = etat.date;
+    iD.setAttribute("aria-label", "Date de la dépense");
+    raccourcis.forEach(function(rc){
+      var c = el("button", "chip", rc.lab);
+      c.type = "button";
+      c.setAttribute("aria-pressed", etat.date === rc.val ? "true" : "false");
+      c.addEventListener("click", function(){
+        etat.date = rc.val; iD.value = rc.val;
+        chips.querySelectorAll(".chip").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+        c.setAttribute("aria-pressed","true");
+      });
+      chips.appendChild(c);
+    });
+    iD.addEventListener("change", function(){
+      etat.date = iD.value || aujourdhui();
+      chips.querySelectorAll(".chip").forEach(function(x, i){
+        x.setAttribute("aria-pressed", etat.date === raccourcis[i].val ? "true" : "false");
+      });
+    });
+    fD.appendChild(chips);
+    fD.appendChild(iD);
+    body.appendChild(fD);
+
+    /* suppression si l'on modifie une dépense existante */
+    if(edition){
+      var bSup = el("button", "btn btn-danger", "Supprimer cette dépense");
+      bSup.type = "button";
+      bSup.style.marginTop = "18px";
+      bSup.addEventListener("click", function(){
+        if(confirm("Supprimer cette dépense de " + fmtF(edition.montant) + " ?")){
+          supprimerDepense(edition.id);
+          fermerFeuille(false);
+          render();
+          toast("Dépense supprimée");
+        }
+      });
+      body.appendChild(bSup);
+    }
+
+    /* barre de validation */
+    var bar = el("div", "sticky"), inn = el("div", "sticky-in");
+    var bOk = el("button", "btn btn-primary", edition ? "Enregistrer les modifications" : "Enregistrer la dépense");
+    bOk.type = "button";
+    bOk.addEventListener("click", enregistrer);
+    inn.appendChild(bOk);
+    bar.appendChild(inn);
+    sh.appendChild(bar);
+
+    im.addEventListener("keydown", function(e){
+      if(e.key === "Enter" && etat.montant > 0){ e.preventDefault(); enregistrer(); }
+    });
+
+    function majInfo(){
+      var affecte = Number(r.montant) || 0;
+      var dejaSansMoi = depenseRub(r.id) - (edition ? (Number(edition.montant)||0) : 0);
+      var apres = dejaSansMoi + (Number(etat.montant)||0);
+      var restant = affecte - apres;
+      var etatC = etatJauge(apres, affecte);
+      info.className = "info-env " + (affecte <= 0 ? "" : etatC === "rouge" ? "rouge" : etatC === "orange" ? "orange" : "vert");
+      if(affecte <= 0){
+        info.textContent = "Aucun montant n'est affecté à cette enveloppe pour l'instant.";
+      }else if(restant >= 0){
+        info.textContent = "Après cette dépense, il resterait " + fmtF(restant) + " dans « " + r.nom + " ».";
+      }else{
+        info.textContent = "Cette dépense dépasserait l'enveloppe de " + fmtF(-restant) + ". C'est possible, à vous de voir.";
+      }
+      bOk.disabled = !(Number(etat.montant) > 0);
+    }
+    majInfo();
+    setTimeout(function(){ try{ im.focus(); }catch(e){} }, 60);
+  }
+
+  function enregistrer(){
+    if(!(Number(etat.montant) > 0)) return;
+    if(edition){
+      edition.rubrique = etat.rubrique;
+      edition.montant = Number(etat.montant) || 0;
+      edition.libelle = (etat.libelle || "").trim();
+      edition.date = etat.date || aujourdhui();
+    }else{
+      S.depenses.push({
+        id: uid(),
+        rubrique: etat.rubrique,
+        montant: Number(etat.montant) || 0,
+        libelle: (etat.libelle || "").trim(),
+        date: etat.date || aujourdhui(),
+        cree: Date.now()
+      });
+    }
+    sauver();
+    fermerFeuille(false);
+    render();
+    toast(edition ? "Modification enregistrée" : "Dépense enregistrée ✓");
+  }
+
+  dessiner();
+}
+
+function supprimerDepense(id){
+  S.depenses = S.depenses.filter(function(d){ return d.id !== id; });
+  sauver();
+}
+
+/* ==============================================================
+   ÉCRAN 4 — Tableau de bord (F5)
    ============================================================== */
 function vueDashboard(ec, ba){
   var tot = totalRevenus(), rep = totalReparti(), rst = tot - rep;
+  var dep = totalDepense(), dispo = tot - dep;
+  var jours = joursAvantPaie();
+  var paie = prochainePaie();
 
   ec.appendChild(el("h1", null, "Tableau de bord"));
   ec.appendChild(el("p", "sub", "Salaire reçu " + libelleJour() + "."));
 
+  /* --- en-tête : reste global + jours avant la prochaine paie --- */
   var tete = el("div", "tb-tete");
-  tete.appendChild(el("div", "lab tiny muted", "REVENUS DU MOIS"));
-  tete.appendChild(el("div", "big", fmtF(tot)));
-  var j = el("div", "jauge");
-  j.style.marginTop = "12px";
-  tete.appendChild(j);
-  dessinerJauge(j);
-  var sousT = el("div", "tiny muted");
-  sousT.style.marginTop = "8px";
-  sousT.textContent = "Réparti : " + fmtF(rep) + "  ·  " + (rst >= 0 ? "Non affecté : " + fmtF(rst) : "Dépassement : " + fmtF(-rst));
-  tete.appendChild(sousT);
+  tete.appendChild(el("div", "lab tiny muted", "IL VOUS RESTE"));
+  var grand = el("div", "big", fmtF(Math.max(dispo, 0)));
+  if(dispo < 0) grand.className = "big c-rouge";
+  tete.appendChild(grand);
+
+  if(jours){
+    var phrase = el("div", "small");
+    phrase.style.marginTop = "2px";
+    phrase.textContent = dispo >= 0
+      ? "pour " + motJours(jours) + ", jusqu'à la prochaine paie."
+      : "Vous avez dépensé " + fmtF(-dispo) + " de plus que vos revenus, à " + motJours(jours) + " de la paie.";
+    tete.appendChild(phrase);
+    var quand = el("div", "tiny muted", "Prochaine paie : " + paie.getDate() + " " + MOIS[paie.getMonth()] + ".");
+    quand.style.marginTop = "2px";
+    tete.appendChild(quand);
+  }
+
+  var jg = jaugeRub(dep, tot);
+  jg.style.marginTop = "12px";
+  tete.appendChild(jg);
+
+  var bas = el("div", "env-bas");
+  bas.appendChild(el("span", "muted", "Dépensé : " + fmtF(dep) + " sur " + fmtF(tot)));
+  if(jours && dispo > 0){
+    bas.appendChild(el("span", "muted", "≈ " + fmtF(Math.floor(dispo / jours)) + " / jour"));
+  }
+  tete.appendChild(bas);
   ec.appendChild(tete);
 
+  /* --- rappel du déficit de répartition (F2) --- */
   if(rst < 0){
-    var b = el("div", "banner", "Déficit à combler : " + fmtF(-rst));
-    ec.appendChild(b);
+    ec.appendChild(el("div", "banner", "Déficit à combler : " + fmtF(-rst)));
   }
 
-  ec.appendChild(el("h2", null, "Rubriques"));
-  var card = el("div", "card");
+  /* --- une jauge par rubrique --- */
+  ec.appendChild(el("h2", null, "Vos enveloppes"));
   var act = actives();
   if(act.length === 0){
-    card.appendChild(el("div", "vide-msg", "Aucune rubrique active. Ouvrez « Rubriques » pour en choisir."));
+    var c0 = el("div", "card");
+    c0.appendChild(el("div", "vide-msg", "Aucune rubrique active. Ouvrez « Rubriques » pour en choisir."));
+    ec.appendChild(c0);
   }else{
     act.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); }).forEach(function(r){
-      var l = el("div", "tb-ligne");
-      var p = el("span", "pastille");
-      p.style.background = r.couleur;
-      l.appendChild(p);
-      l.appendChild(el("span", "ico", r.icone));
-      l.appendChild(el("span", "nom", r.nom));
-      var m = el("div", "tb-mont", fmtF(r.montant));
-      var pc = tot > 0 ? Math.round((Number(r.montant)||0) / tot * 100) : 0;
-      m.appendChild(el("small", null, pc + "% des revenus"));
-      l.appendChild(m);
-      card.appendChild(l);
+      ec.appendChild(carteEnveloppe(r));
     });
   }
-  /* Non affecté */
+
+  /* --- enveloppes désactivées qui portent des dépenses --- */
+  var orphelines = S.rubriques.filter(function(r){ return !r.active && depenseRub(r.id) > 0; });
+  if(orphelines.length){
+    ec.appendChild(el("h2", null, "Rubriques désactivées"));
+    orphelines.forEach(function(r){ ec.appendChild(carteEnveloppe(r)); });
+  }
+
+  /* --- non affecté --- */
+  var card = el("div", "card");
   var l2 = el("div", "tb-ligne");
-  var p2 = el("span", "pastille");
-  p2.style.background = "var(--muted)";
-  l2.appendChild(p2);
+  var p2b = el("span", "pastille");
+  p2b.style.background = "var(--muted)";
+  l2.appendChild(p2b);
   l2.appendChild(el("span", "ico", "🗂️"));
   l2.appendChild(el("span", "nom", "Non affecté"));
   var m2 = el("div", "tb-mont", fmtF(Math.max(0, rst)));
@@ -861,6 +1364,20 @@ function vueDashboard(ec, ba){
   card.appendChild(l2);
   ec.appendChild(card);
 
+  /* --- dernières dépenses --- */
+  var recentes = triDepenses(S.depenses).slice(0, 5);
+  if(recentes.length){
+    ec.appendChild(el("h2", null, "Dernières dépenses"));
+    var cr = el("div", "card");
+    recentes.forEach(function(d){ cr.appendChild(ligneDepense(d, true)); });
+    ec.appendChild(cr);
+  }else{
+    var vide = el("div", "card");
+    vide.appendChild(el("div", "vide-msg", "Aucune dépense saisie. Appuyez sur le bouton « + » pour commencer."));
+    ec.appendChild(vide);
+  }
+
+  /* --- modifier --- */
   ec.appendChild(el("h2", null, "Modifier"));
   var r1 = el("div", "row-btns");
   var b1 = el("button", "btn", "Répartition"); b1.type = "button";
@@ -887,6 +1404,161 @@ function vueDashboard(ec, ba){
   var note = el("p", "tiny muted", "Vos données restent sur cet appareil.");
   note.style.margin = "14px 0 0";
   ec.appendChild(note);
+
+  /* --- bouton « + » flottant (tap 1) --- */
+  boutonPlus(ba, null);
+}
+
+/* --- carte d'une enveloppe avec sa jauge --- */
+function carteEnveloppe(r){
+  var affecte = Number(r.montant) || 0;
+  var d = depenseRub(r.id);
+  var etat = etatJauge(d, affecte);
+  var reste = affecte - d;
+
+  var b = el("button", "env" + (etat === "rouge" ? " alerte" : ""));
+  b.type = "button";
+  b.setAttribute("aria-label", "Voir les dépenses de " + r.nom);
+
+  var haut = el("div", "env-haut");
+  var ic = el("span", "ico", r.icone);
+  ic.style.background = "rgba(255,255,255,.05)";
+  ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+  haut.appendChild(ic);
+  haut.appendChild(el("span", "nom", r.nom));
+  if(!r.active) haut.appendChild(el("span", "tag", "désactivée"));
+  var m = el("div", "env-mont", fmtF(d));
+  m.appendChild(el("small", null, "sur " + fmtF(affecte)));
+  haut.appendChild(m);
+  haut.appendChild(el("span", "chev", "›"));
+  b.appendChild(haut);
+
+  b.appendChild(jaugeRub(d, affecte));
+
+  var bas = el("div", "env-bas");
+  var g = el("span", classeEtat(etat), affecte > 0 ? pct(d / affecte * 100) + " utilisé" : (d > 0 ? "hors enveloppe" : "rien d'affecté"));
+  bas.appendChild(g);
+  var dr = el("span", reste < 0 ? "c-rouge" : "muted",
+    reste >= 0 ? "Reste " + fmtF(reste) : "Dépassement de " + fmtF(-reste));
+  bas.appendChild(dr);
+  b.appendChild(bas);
+
+  b.addEventListener("click", function(){ ouvrirRubrique(r.id); });
+  return b;
+}
+
+/* --- une ligne de dépense (modifiable / supprimable) --- */
+function ligneDepense(d, avecRubrique){
+  var r = rubriqueParId(d.rubrique);
+  var ligne = el("div", "dep");
+
+  var main = el("button", "dep-main");
+  main.type = "button";
+  main.setAttribute("aria-label", "Modifier cette dépense");
+  var ic = el("span", "ico", r ? r.icone : "💸");
+  if(r){
+    ic.style.background = "rgba(255,255,255,.05)";
+    ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+  }
+  main.appendChild(ic);
+  var txt = el("div", "d-txt");
+  txt.appendChild(el("div", "d-lib", d.libelle || (r ? r.nom : "Dépense")));
+  var sous = dateLisible(d.date);
+  if(avecRubrique && r && d.libelle) sous += " · " + r.nom;
+  txt.appendChild(el("div", "d-date", sous));
+  main.appendChild(txt);
+  main.appendChild(el("div", "d-mont", fmtF(d.montant)));
+  main.addEventListener("click", function(){ ouvrirDepense({edit: d}); });
+  ligne.appendChild(main);
+
+  var sup = el("button", "del", "×");
+  sup.type = "button";
+  sup.title = "Supprimer";
+  sup.setAttribute("aria-label", "Supprimer cette dépense de " + fmt(d.montant) + " francs");
+  sup.addEventListener("click", function(){
+    if(confirm("Supprimer cette dépense de " + fmtF(d.montant) + " ?")){
+      supprimerDepense(d.id);
+      render();
+      toast("Dépense supprimée");
+    }
+  });
+  ligne.appendChild(sup);
+  return ligne;
+}
+
+/* ==============================================================
+   ÉCRAN 5 — Détail d'une rubrique et de ses dépenses
+   ============================================================== */
+function vueRubriqueDetail(ec, ba){
+  var r = rubriqueParId(rubOuverte);
+  if(!r){ aller("dashboard"); return; }
+
+  var affecte = Number(r.montant) || 0;
+  var d = depenseRub(r.id);
+  var etat = etatJauge(d, affecte);
+  var reste = affecte - d;
+
+  var bRet = el("button", "btn btn-ghost btn-line", "‹ Tableau de bord");
+  bRet.type = "button";
+  bRet.style.marginBottom = "14px";
+  bRet.addEventListener("click", function(){ aller("dashboard"); });
+  ec.appendChild(bRet);
+
+  var t = el("h1", null, r.icone + " " + r.nom);
+  ec.appendChild(t);
+  ec.appendChild(el("p", "sub", r.groupe));
+
+  /* résumé */
+  var carte = el("div", "tb-tete");
+  var haut = el("div", "env-haut");
+  var bloc = el("div");
+  bloc.style.flex = "1";
+  bloc.appendChild(el("div", "lab tiny muted", "DÉPENSÉ"));
+  var gr = el("div", "big", fmtF(d));
+  if(etat === "rouge") gr.className = "big c-rouge";
+  bloc.appendChild(gr);
+  bloc.appendChild(el("div", "tiny muted", "sur " + fmtF(affecte) + " affectés"));
+  haut.appendChild(bloc);
+  carte.appendChild(haut);
+  var jg = jaugeRub(d, affecte);
+  jg.style.marginTop = "10px";
+  carte.appendChild(jg);
+  var bas = el("div", "env-bas");
+  bas.appendChild(el("span", classeEtat(etat), affecte > 0 ? pct(d / affecte * 100) + " utilisé" : "rien d'affecté"));
+  bas.appendChild(el("span", reste < 0 ? "c-rouge" : "muted",
+    reste >= 0 ? "Reste " + fmtF(reste) : "Dépassement de " + fmtF(-reste)));
+  carte.appendChild(bas);
+  ec.appendChild(carte);
+
+  if(reste < 0){
+    var msg = el("p", "small muted", "L'enveloppe est dépassée. MonDjai ne bloque rien : à vous de décider où prendre la différence.");
+    ec.appendChild(msg);
+  }
+
+  /* liste des dépenses */
+  var liste = triDepenses(depensesDe(r.id));
+  ec.appendChild(el("h2", null, liste.length ? "Ses dépenses (" + liste.length + ")" : "Ses dépenses"));
+  var card = el("div", "card");
+  if(!liste.length){
+    card.appendChild(el("div", "vide-msg", "Aucune dépense dans cette enveloppe pour l'instant."));
+  }else{
+    liste.forEach(function(dep){ card.appendChild(ligneDepense(dep, false)); });
+  }
+  ec.appendChild(card);
+
+  var aide = el("p", "tiny muted", "Appuyez sur une dépense pour la modifier, ou sur × pour la supprimer.");
+  aide.style.margin = "10px 0 0";
+  ec.appendChild(aide);
+
+  /* modifier le montant affecté */
+  var bRep = el("button", "btn", "Modifier la répartition");
+  bRep.type = "button";
+  bRep.style.marginTop = "18px";
+  bRep.addEventListener("click", function(){ aller("repartition"); });
+  ec.appendChild(bRep);
+
+  /* « + » pré-réglé sur cette enveloppe : 2 taps */
+  boutonPlus(ba, r.id);
 }
 
 /* ---------- démarrage ---------- */
