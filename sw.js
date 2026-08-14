@@ -1,13 +1,14 @@
 /* ==============================================================
-   MonDjai — service worker
-   Rôle : rendre l'application utilisable sans connexion.
-   IMPORTANT : à chaque nouvelle version de l'application,
-   changez le numéro dans CACHE (v1 -> v2, etc.) pour que
-   les téléphones récupèrent bien les fichiers mis à jour.
-   ============================================================== */
-"use strict";
+   MonDjai — service worker (mode hors ligne)
+   Sprint 4. Aucun appel réseau n'est fait par l'application :
+   ce fichier ne sert qu'à garder les 4 fichiers sur le téléphone
+   pour que MonDjai s'ouvre sans connexion, une fois installée.
 
-var CACHE = "mondjai-v1";
+   IMPORTANT : à chaque nouvelle version déposée sur GitHub Pages,
+   le numéro ci-dessous change. C'est ce qui dit au téléphone
+   « va rechercher les fichiers, ils ont été mis à jour ».
+   ============================================================== */
+var CACHE = "mondjai-v4";
 
 var FICHIERS = [
   "./",
@@ -16,48 +17,52 @@ var FICHIERS = [
   "./icon-512.png"
 ];
 
-/* Installation : on met les fichiers en réserve. */
+/* --- installation : on range les fichiers dans le cache --- */
 self.addEventListener("install", function(e){
   e.waitUntil(
-    caches.open(CACHE).then(function(c){
-      return c.addAll(FICHIERS);
-    }).then(function(){
-      return self.skipWaiting();
-    })
+    caches.open(CACHE).then(function(cache){
+      /* fichier par fichier : si l'icône manque, l'installation réussit quand même */
+      return Promise.all(FICHIERS.map(function(f){
+        return cache.add(new Request(f, {cache: "reload"})).catch(function(){});
+      }));
+    }).then(function(){ return self.skipWaiting(); })
   );
 });
 
-/* Activation : on supprime les réserves des anciennes versions. */
+/* --- activation : on jette les caches des versions précédentes --- */
 self.addEventListener("activate", function(e){
   e.waitUntil(
     caches.keys().then(function(cles){
-      return Promise.all(cles.map(function(k){
-        if(k !== CACHE) return caches.delete(k);
+      return Promise.all(cles.map(function(c){
+        return (c === CACHE) ? null : caches.delete(c);
       }));
-    }).then(function(){
-      return self.clients.claim();
-    })
+    }).then(function(){ return self.clients.claim(); })
   );
 });
 
-/* Lecture : on sert d'abord la réserve locale. */
+/* --- lecture : le cache d'abord (donc instantané et hors ligne),
+       puis mise à jour discrète en arrière-plan si le réseau existe --- */
 self.addEventListener("fetch", function(e){
   var req = e.request;
   if(req.method !== "GET") return;
 
+  var url;
+  try{ url = new URL(req.url); }catch(err){ return; }
+  if(url.origin !== self.location.origin) return;
+
   e.respondWith(
     caches.match(req).then(function(rep){
-      if(rep) return rep;
-      return fetch(req).then(function(net){
-        if(net && net.status === 200 && net.type === "basic"){
-          var copie = net.clone();
-          caches.open(CACHE).then(function(c){ c.put(req, copie); });
+      var reseau = fetch(req).then(function(fraiche){
+        if(fraiche && fraiche.status === 200 && fraiche.type === "basic"){
+          var copie = fraiche.clone();
+          caches.open(CACHE).then(function(cache){ cache.put(req, copie); });
         }
-        return net;
+        return fraiche;
       }).catch(function(){
-        /* Hors ligne et fichier inconnu : on renvoie la page d'accueil. */
-        if(req.mode === "navigate") return caches.match("./index.html");
+        /* hors ligne : on se rabat sur la page d'accueil mise en cache */
+        return rep || caches.match("./index.html");
       });
+      return rep || reseau;
     })
   );
 });

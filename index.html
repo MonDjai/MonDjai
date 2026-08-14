@@ -370,6 +370,66 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
   color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:3px 9px;font-weight:700
 }
 
+/* ==============================================================
+   Sprint 4 — code d'accès, réglages, lissage, épargne valorisée
+   ============================================================== */
+:root{ --bleu:#5B9BD5; --bleu-soft:rgba(91,155,213,.14); }
+.c-attente{color:var(--bleu)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+
+/* --- écran verrouillé + clavier du code --- */
+.verrou{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:26px}
+.verrou h1{margin-bottom:4px}
+.verrou .sub{margin-bottom:6px}
+.code-bloc{display:flex;flex-direction:column;align-items:center;width:100%}
+.points{display:flex;gap:16px;margin:16px 0 2px}
+.pt{width:14px;height:14px;border-radius:99px;border:1.5px solid var(--line);background:transparent}
+.pt.on{background:var(--gold);border-color:var(--gold)}
+.err-code{min-height:20px;margin:8px 0 0;font-size:13.5px;font-weight:600;color:var(--red)}
+.clav{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:290px;margin:14px auto 0}
+.tou{height:58px;border-radius:14px;border:1px solid var(--line);background:var(--surface);
+     font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.tou:active{transform:translateY(1px)}
+.tou-vide{border:0;background:transparent;pointer-events:none}
+.lien{background:transparent;border:0;color:var(--muted);font-size:13.5px;
+      text-decoration:underline;padding:14px 10px;margin-top:6px}
+
+/* --- écran Réglages --- */
+.regl{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--surface);
+      border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:8px}
+.regl:active{transform:translateY(1px)}
+.regl-nom{font-weight:600;font-size:15px}
+.regl-sous{font-size:12.5px;color:var(--muted);margin-top:1px}
+
+/* --- gestion des rubriques : ligne + bouton modifier --- */
+.rub-row{display:flex;align-items:stretch;gap:8px;margin-bottom:8px}
+.rub-row .rub{flex:1;min-width:0;margin-bottom:0}
+.mini{width:46px;flex:none;border-radius:var(--r);border:1px solid var(--line);
+      background:var(--surface);font-size:16px;padding:0}
+
+/* --- assistant de lissage (F9) --- */
+.sous-ligne{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lien-liss{background:transparent;border:0;padding:0;color:var(--gold);font-size:12px;
+           font-weight:700;text-align:left}
+.lissage{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;
+         padding:13px;margin:-2px 0 10px}
+.liss-t{font-weight:800;font-size:14px;margin-bottom:3px}
+.liss-p{margin:0 0 11px;font-size:12.5px;color:var(--muted);line-height:1.4}
+.liss-ligne{display:flex;align-items:center;gap:10px}
+.liss-lab{flex:1;font-size:13.5px;font-weight:600}
+.liss-res{font-size:13px;font-weight:700;color:var(--gold);margin:0 0 11px}
+
+/* --- épargne valorisée (F10) --- */
+.info-env.attente{background:var(--bleu-soft);border-color:rgba(91,155,213,.3);color:var(--bleu)}
+.avis-vert{background:var(--green-soft);border-color:rgba(63,178,127,.35)}
+.avis-vert .avis-t{color:var(--green)}
+.bravo{font-size:12.5px;font-weight:700;color:var(--green);margin-top:6px}
+
+/* --- à propos --- */
+.ap{padding:9px 0;display:flex;gap:9px;align-items:flex-start;font-size:14px;line-height:1.4}
+.ap span:first-child{flex:none}
+.mission{font-size:17px;font-weight:700;line-height:1.35;margin:0 0 6px}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -388,12 +448,14 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 <script>
 "use strict";
 /* ==============================================================
-   MonDjai — Sprint 3
+   MonDjai — Sprint 4
    (Sprint 1 : jour de paie, revenus, rubriques, répartition)
    (Sprint 2 : saisie de dépense en 3 taps, tableau de bord à
     jauges, détail des dépenses par rubrique)
    (Sprint 3 : cycles budgétaires, historique, sauvegarde et
     restauration JSON, affichage par groupes)
+   (Sprint 4 : code d'accès, écran Réglages, assistant de
+    lissage, épargne valorisée, écran À propos)
    Tout est local : aucun appel réseau, aucune bibliothèque.
    ============================================================== */
 
@@ -443,6 +505,17 @@ var TYPES_REVENU = ["Activités secondaires","Prime","Autre"];
 var COULEURS = ["#F2A93B","#E5723B","#F2C94C","#56A8F5","#5FC2C7","#3E7FC1","#3FB27F","#2E9E8F","#C77BE0","#E07BA8"];
 var EMOJIS = ["🏠","🍚","🚕","💡","🚰","📱","💊","🎓","👕","🎉","🐖","🎯","🤝","🏦","🔄","🙏","🔥","🧼","💇","📺","🛡️","⚠️","🚗","✈️","🎁","📚","⚽","💼"];
 var MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+
+/* Sprint 4 — le groupe qui reçoit le traitement positif (F10) */
+var GROUPE_EPARGNE = "Épargne & Investissement";
+
+/* Sprint 4 — périodicités de l'assistant de lissage (F9) */
+var PERIODICITES = [
+  {cle:"mensuel",     label:"Mensuel",     mois:1,  par:"par mois"},
+  {cle:"bimestriel",  label:"Bimestriel",  mois:2,  par:"tous les 2 mois"},
+  {cle:"trimestriel", label:"Trimestriel", mois:3,  par:"par trimestre"},
+  {cle:"annuel",      label:"Annuel",      mois:12, par:"par an"}
+];
 
 var CLE = "mondjai.v2";
 var NBSP = "\u00A0";
@@ -541,23 +614,28 @@ var vue = S.onboarded ? "dashboard" : "revenus";
 var rubOuverte = null;    /* id de la rubrique affichée en détail */
 var cycleOuvert = null;   /* id du cycle archivé consulté */
 var brouillonCycle = null;/* nouveau cycle en préparation */
+var deverrouille = !S.pin;/* Sprint 4 — tant que c'est faux, aucun montant n'est affiché */
+var retours = {};         /* Sprint 4 — d'où l'on vient, pour le bouton retour */
 
 function neuf(){
   return {
-    version: 4,
+    version: 5,
     onboarded: false,
     jourSalaire: null,
     revenus: [{id: uid(), libelle: "Salaire net", montant: 0}],
     rubriques: RUBRIQUES_F3.map(function(r){
       return {id:r.id, nom:r.nom, icone:r.icone, couleur:r.couleur, groupe:r.groupe,
-              active:!!r.defaut, montant:0, perso:false};
+              active:!!r.defaut, montant:0, perso:false,
+              periodicite:"mensuel", montantReel:0};
     }),
     depenses: [],
     cycleId: uid(),
     cycleDebut: aujourdhui(),
     cycles: [],
     rappelSauvegarde: false,
-    derniereSauvegarde: null
+    derniereSauvegarde: null,
+    pin: null,              /* Sprint 4 — code à 4 chiffres, ou null */
+    epargneFelicitee: null  /* Sprint 4 — total épargné du cycle qu'on vient de clôturer */
   };
 }
 
@@ -578,7 +656,10 @@ function normaliser(o){
       groupe: r.groupe || "Vie courante",
       active: !!r.active,
       montant: Number(r.montant) || 0,
-      perso: !!r.perso
+      perso: !!r.perso,
+      /* Sprint 4 — lissage mémorisé sur la rubrique (F9) */
+      periodicite: estPeriodicite(r.periodicite) ? r.periodicite : "mensuel",
+      montantReel: Number(r.montantReel) || 0
     };
   });
   if(!rubs.length) return null;
@@ -634,7 +715,13 @@ function normaliser(o){
   });
   o.rappelSauvegarde = !!o.rappelSauvegarde;
   if(typeof o.derniereSauvegarde !== "string") o.derniereSauvegarde = null;
-  o.version = 4;
+
+  /* --- Sprint 4 : code d'accès et félicitations d'épargne --- */
+  o.pin = (typeof o.pin === "string" && /^[0-9]{4}$/.test(o.pin)) ? o.pin : null;
+  o.epargneFelicitee = (o.epargneFelicitee === null || o.epargneFelicitee === undefined)
+    ? null : (Number(o.epargneFelicitee) || 0);
+
+  o.version = 5;
   return o;
 }
 
@@ -700,21 +787,90 @@ function etatJauge(depense, affecte){
 }
 function couleurEtat(e){
   return e === "rouge" ? "var(--red)" : e === "orange" ? "var(--orange)"
-       : e === "vert" ? "var(--green)" : "var(--muted)";
+       : e === "vert" ? "var(--green)" : e === "attente" ? "var(--bleu)" : "var(--muted)";
 }
 function classeEtat(e){
-  return e === "rouge" ? "c-rouge" : e === "orange" ? "c-orange" : e === "vert" ? "c-vert" : "c-neutre";
+  return e === "rouge" ? "c-rouge" : e === "orange" ? "c-orange" : e === "vert" ? "c-vert"
+       : e === "attente" ? "c-attente" : "c-neutre";
 }
-/* petite jauge : dépensé / affecté */
-function jaugeRub(depense, affecte){
+
+/* ==============================================================
+   SPRINT 4 — ÉPARGNE VALORISÉE (F10)
+   Dans le groupe Épargne & Investissement, on ne « dépense » pas :
+   on met de côté. Rien n'y passe jamais au rouge.
+   ============================================================== */
+function estEpargne(r){
+  return !!r && (r.groupe || "") === GROUPE_EPARGNE;
+}
+/* État d'une rubrique ou d'un groupe :
+   épargne → vert dès l'objectif atteint, bleu d'attente avant, jamais de rouge
+   ailleurs → vert < 70 % · orange 70–99 % · rouge en dépassement (F5, inchangé) */
+function etatDe(depense, affecte, epargne){
+  if(epargne){
+    if(depense <= 0) return affecte > 0 ? "attente" : "neutre";
+    return (depense >= affecte) ? "vert" : "attente";
+  }
+  return etatJauge(depense, affecte);
+}
+/* petite jauge : dépensé (ou mis de côté) / affecté */
+function jaugeRub(depense, affecte, epargne){
   var wrap = el("div", "jauge-r");
   var b = document.createElement("i");
   var base = Math.max(affecte, depense, 1);
   var p = Math.min(100, depense / base * 100);
   b.style.width = (depense > 0 ? Math.max(p, 3) : 0) + "%";
-  b.style.background = couleurEtat(etatJauge(depense, affecte));
+  b.style.background = couleurEtat(etatDe(depense, affecte, epargne));
   wrap.appendChild(b);
   return wrap;
+}
+/* Phrase de droite sous une jauge d'épargne : jamais un reproche */
+function motEpargne(mis, objectif){
+  if(objectif <= 0) return mis > 0 ? "Tout est du gagné" : "Aucun objectif fixé";
+  if(mis > objectif) return "Objectif dépassé de " + fmtF(mis - objectif) + " 🎉";
+  if(mis === objectif && mis > 0) return "Objectif atteint 🎉";
+  return "Encore " + fmtF(objectif - mis) + " à mettre de côté";
+}
+/* Total mis de côté sur le cycle en cours */
+function totalEpargne(){
+  return S.depenses.reduce(function(t, d){
+    var r = rubriqueParId(d.rubrique);
+    return t + (estEpargne(r) ? (Number(d.montant) || 0) : 0);
+  }, 0);
+}
+/* Total mis de côté sur un cycle archivé */
+function cycEpargne(c){
+  var ids = {};
+  c.rubriques.forEach(function(r){ if(estEpargne(r)) ids[r.id] = true; });
+  return c.depenses.reduce(function(t, d){
+    return t + (ids[d.rubrique] ? (Number(d.montant) || 0) : 0);
+  }, 0);
+}
+
+/* ==============================================================
+   SPRINT 4 — ASSISTANT DE LISSAGE (F9)
+   Montant réel + périodicité → provision mensuelle.
+   Ex. : 20 000 F par trimestre → 6 667 F par mois.
+   ============================================================== */
+function estPeriodicite(cle){
+  for(var i = 0; i < PERIODICITES.length; i++){ if(PERIODICITES[i].cle === cle) return true; }
+  return false;
+}
+function periodDe(cle){
+  for(var i = 0; i < PERIODICITES.length; i++){ if(PERIODICITES[i].cle === cle) return PERIODICITES[i]; }
+  return PERIODICITES[0];
+}
+function provisionRub(r){
+  var reel = Number(r.montantReel) || 0;
+  if(reel <= 0) return 0;
+  return Math.round(reel / periodDe(r.periodicite).mois);
+}
+/* Rappel affiché sous le nom de la rubrique, quand un lissage est mémorisé */
+function rappelLissage(r){
+  var reel = Number(r.montantReel) || 0;
+  if(reel <= 0) return "";
+  var p = periodDe(r.periodicite);
+  if(p.cle === "mensuel") return fmtF(reel) + " par mois";
+  return fmtF(reel) + " " + p.par + " ≈ " + fmtF(provisionRub(r)) + "/mois";
 }
 
 /* ==============================================================
@@ -806,6 +962,7 @@ function validerNouveauCycle(){
   S.rubriques.forEach(function(r){
     r.montant = r.active ? (Number(b.montants[r.id]) || 0) : 0;
   });
+  S.epargneFelicitee = totalEpargne();       /* Sprint 4 — de quoi féliciter (F10) */
   S.depenses = [];
   S.rappelSauvegarde = true;                 /* rappel doux à chaque clôture (F7) */
   brouillonCycle = null;
@@ -832,14 +989,20 @@ function groupesPresents(liste){
 function membresGroupe(liste, g){
   return liste.filter(function(r){ return (r.groupe || "Autres") === g; });
 }
-/* En-tête de groupe : nom + sous-total dépensé / affecté */
-function enteteGroupe(nom, affecte, depense){
+/* En-tête de groupe : nom + sous-total dépensé (ou mis de côté) / affecté.
+   Sprint 4 — le groupe Épargne & Investissement suit la règle positive (F10). */
+function enteteGroupe(nom, affecte, depense, epargne){
   var h = el("div", "grp");
   var t = el("div", "grp-t");
   t.appendChild(el("span", "grp-nom", nom));
   t.appendChild(el("span", "grp-mont", fmtF(depense) + " / " + fmtF(affecte)));
   h.appendChild(t);
-  h.appendChild(jaugeRub(depense, affecte));
+  h.appendChild(jaugeRub(depense, affecte, epargne));
+  if(epargne){
+    var l = el("div", "tiny " + classeEtat(etatDe(depense, affecte, true)), motEpargne(depense, affecte));
+    l.style.marginTop = "5px";
+    h.appendChild(l);
+  }
   return h;
 }
 
@@ -964,13 +1127,21 @@ function render(){
   ec.innerHTML = ""; ba.innerHTML = "";
   window.scrollTo(0,0);
   var eb = document.getElementById("eyebrow");
+
+  /* Sprint 4 — verrou : aucun montant n'est dessiné tant que le code n'est pas saisi */
+  if(S.pin && !deverrouille){
+    eb.textContent = "Verrouillé";
+    vueVerrou(ec, ba);
+    return;
+  }
+
   if(!S.onboarded){
     eb.textContent = "Étape " + ({revenus:1, rubriques:2, repartition:3}[vue] || 3) + " sur 3";
   }else{
     eb.textContent = ({revenus:"Revenus", rubriques:"Rubriques", repartition:"Répartition",
                        dashboard:"Tableau de bord", rubrique:"Enveloppe",
                        nouveauCycle:"Nouveau cycle", historique:"Historique",
-                       cycle:"Cycle archivé"})[vue] || "Tableau de bord";
+                       cycle:"Cycle archivé", reglages:"Réglages", apropos:"À propos"})[vue] || "Tableau de bord";
   }
   if(vue === "revenus") vueRevenus(ec, ba);
   else if(vue === "rubriques") vueRubriques(ec, ba);
@@ -979,9 +1150,22 @@ function render(){
   else if(vue === "nouveauCycle") vueNouveauCycle(ec, ba);
   else if(vue === "historique") vueHistorique(ec, ba);
   else if(vue === "cycle") vueCycleArchive(ec, ba);
+  else if(vue === "reglages") vueReglages(ec, ba);
+  else if(vue === "apropos") vueApropos(ec, ba);
   else vueDashboard(ec, ba);
 }
 function aller(v){ vue = v; sauver(); render(); }
+/* Ouvrir un écran en se souvenant d'où l'on vient (bouton retour juste) */
+function ouvrirVue(v, depuis){ retours[v] = depuis || "dashboard"; aller(v); }
+function retourDe(v){ return retours[v] || "dashboard"; }
+/* Bouton « ‹ ... » réutilisé en haut des écrans secondaires */
+function boutonRetour(texte, cible){
+  var b = el("button", "btn btn-ghost btn-line", "‹ " + texte);
+  b.type = "button";
+  b.style.marginBottom = "14px";
+  b.addEventListener("click", function(){ aller(cible); });
+  return b;
+}
 function ouvrirRubrique(id){ rubOuverte = id; aller("rubrique"); }
 function ouvrirCycle(id){ cycleOuvert = id; aller("cycle"); }
 
@@ -1081,13 +1265,25 @@ function vueRevenus(ec, ba){
   tot.appendChild(totVal);
   ec.appendChild(tot);
 
+  /* --- reprendre une sauvegarde, au tout premier lancement --- */
+  if(!S.onboarded){
+    ec.appendChild(el("h2", null, "Vous avez déjà utilisé MonDjai ?"));
+    var bRes = el("button", "btn", "Restaurer une sauvegarde");
+    bRes.type = "button";
+    bRes.addEventListener("click", restaurerDonnees);
+    ec.appendChild(bRes);
+    var aideRes = el("p", "tiny muted", "Reprenez votre fichier « mondjai-sauvegarde-….json » : tout revient comme avant.");
+    aideRes.style.margin = "8px 0 0";
+    ec.appendChild(aideRes);
+  }
+
   /* --- barre --- */
   var bar = el("div", "sticky"), inn = el("div", "sticky-in");
   var suite = el("button", "btn btn-primary", S.onboarded ? "Enregistrer" : "Continuer");
   suite.type = "button";
   suite.addEventListener("click", function(){
     sauver();
-    aller(S.onboarded ? "dashboard" : "rubriques");
+    aller(S.onboarded ? retourDe("revenus") : "rubriques");
   });
   var aide = el("p", "tiny muted", "");
   aide.style.margin = "0 0 8px";
@@ -1110,34 +1306,62 @@ function vueRevenus(ec, ba){
    ÉCRAN 2 — Rubriques
    ============================================================== */
 function vueRubriques(ec, ba){
+  if(S.onboarded) ec.appendChild(boutonRetour(retourDe("rubriques") === "reglages" ? "Réglages" : "Tableau de bord", retourDe("rubriques")));
   ec.appendChild(el("h1", null, "Vos rubriques"));
-  ec.appendChild(el("p", "sub", "Cochez les enveloppes que vous utilisez. Vous pourrez en ajouter ou en retirer plus tard."));
+  ec.appendChild(el("p", "sub", S.onboarded
+    ? "Cochez ce que vous utilisez. Le crayon ✎ permet de renommer une rubrique, de changer son icône, sa couleur et son groupe."
+    : "Cochez les enveloppes que vous utilisez. Vous pourrez en ajouter ou en retirer plus tard."));
 
   var liste = el("div");
   ec.appendChild(liste);
 
+  /* Sprint 4 — la liste est rangée par groupe, et chaque rubrique est modifiable */
   function dessiner(){
     liste.innerHTML = "";
-    S.rubriques.forEach(function(r){
-      var b = el("button", "rub");
-      b.type = "button";
-      b.setAttribute("aria-pressed", r.active ? "true" : "false");
-      var ic = el("span", "ico", r.icone);
-      ic.style.background = "rgba(255,255,255,.05)";
-      ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
-      b.appendChild(ic);
-      b.appendChild(el("span", "nom", r.nom));
-      if(r.perso) b.appendChild(el("span", "perso-tag", "perso"));
-      b.appendChild(el("span", "check", "✓"));
-      b.addEventListener("click", function(){
-        r.active = !r.active;
-        if(!r.active) r.montant = 0;
-        sauver();
-        b.setAttribute("aria-pressed", r.active ? "true" : "false");
-        majCompte();
-      });
-      liste.appendChild(b);
+    groupesPresents(S.rubriques).forEach(function(g){
+      var membres = membresGroupe(S.rubriques, g);
+      if(!membres.length) return;
+      var h = el("div", "grp");
+      var ht = el("div", "grp-t");
+      ht.appendChild(el("span", "grp-nom", g));
+      var nA = membres.filter(function(x){ return x.active; }).length;
+      ht.appendChild(el("span", "grp-mont", nA + (nA > 1 ? " cochées" : " cochée")));
+      h.appendChild(ht);
+      liste.appendChild(h);
+      membres.forEach(function(r){ liste.appendChild(ligneRub(r)); });
     });
+  }
+  function ligneRub(r){
+    var wrap = el("div", "rub-row");
+    var b = el("button", "rub");
+    b.type = "button";
+    b.setAttribute("aria-pressed", r.active ? "true" : "false");
+    var ic = el("span", "ico", r.icone);
+    ic.style.background = "rgba(255,255,255,.05)";
+    ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+    b.appendChild(ic);
+    b.appendChild(el("span", "nom", r.nom));
+    if(r.perso) b.appendChild(el("span", "perso-tag", "perso"));
+    b.appendChild(el("span", "check", "✓"));
+    b.addEventListener("click", function(){
+      r.active = !r.active;
+      if(!r.active) r.montant = 0;
+      sauver();
+      b.setAttribute("aria-pressed", r.active ? "true" : "false");
+      dessiner();
+      majCompte();
+    });
+    wrap.appendChild(b);
+    if(S.onboarded){
+      var e = el("button", "mini", "✎");
+      e.type = "button";
+      e.setAttribute("aria-label", "Modifier " + r.nom);
+      e.addEventListener("click", function(){
+        ouvrirEditionRubrique(r, function(){ dessiner(); majCompte(); });
+      });
+      wrap.appendChild(e);
+    }
+    return wrap;
   }
   dessiner();
 
@@ -1247,7 +1471,7 @@ function vueRubriques(ec, ba){
   }
   var bSuite = el("button", "btn btn-primary", S.onboarded ? "Enregistrer" : "Continuer");
   bSuite.type = "button";
-  bSuite.addEventListener("click", function(){ sauver(); aller(S.onboarded ? "dashboard" : "repartition"); });
+  bSuite.addEventListener("click", function(){ sauver(); aller(S.onboarded ? retourDe("rubriques") : "repartition"); });
   rowB.appendChild(bSuite);
   inn.appendChild(doux); inn.appendChild(info); inn.appendChild(rowB);
   bar.appendChild(inn); ba.appendChild(bar);
@@ -1278,44 +1502,20 @@ function vueRepartition(ec, ba){
   tete.appendChild(el("div", "tiny muted", "Reçu " + libelleJour()));
   ec.appendChild(tete);
 
-  var champs = {};
   var pcts = {};
   var liste = el("div");
   liste.style.marginTop = "14px";
+  var pilote = {maj: function(){ maj(); }, reste: function(){ return reste(); }};
   actives().forEach(function(r){
-    var row = el("div", "repart");
-    row.style.borderLeftColor = r.couleur;
-    var ic = el("span", "ico", r.icone);
-    row.appendChild(ic);
-    var bloc = el("div");
-    bloc.style.flex = "1"; bloc.style.minWidth = "0";
-    bloc.appendChild(el("div", "nom", r.nom));
-    var p = el("span", "pct", "0 %");
-    pcts[r.id] = p;
-    bloc.appendChild(p);
-    row.appendChild(bloc);
-
-    var bReste = el("button", "reste-ici", "+ reste");
-    bReste.type = "button";
-    bReste.title = "Mettre tout le reste dans cette rubrique";
-    row.appendChild(bReste);
-
-    var champ = champMontant(r.montant, function(v){ r.montant = v; sauver(); maj(); });
-    champs[r.id] = champ;
-    row.appendChild(champ);
-
-    bReste.addEventListener("click", function(){
-      var rst = reste();
-      if(rst <= 0) return;
-      r.montant = (Number(r.montant)||0) + rst;
-      sauver();
-      champ.value = fmt(r.montant);
-      champ.classList.remove("vide");
-      maj();
-    });
-    liste.appendChild(row);
+    liste.appendChild(ligneRepartition(r, Number(r.montant) || 0, function(v){
+      r.montant = v; sauver(); maj();
+    }, pilote, pcts));
   });
   ec.appendChild(liste);
+  var aideL = el("p", "tiny muted",
+    "Une dépense qui ne tombe pas tous les mois — électricité, assurance, scolarité ? Appuyez sur « Lisser un montant » : MonDjai calcule la part à prévoir chaque mois.");
+  aideL.style.margin = "2px 0 0";
+  ec.appendChild(aideL);
 
   /* --- barre --- */
   var bar = el("div", "sticky"), inn = el("div", "sticky-in");
@@ -1339,6 +1539,10 @@ function vueRepartition(ec, ba){
     var bRet = el("button", "btn btn-ghost", "Retour"); bRet.type = "button";
     bRet.addEventListener("click", function(){ aller("rubriques"); });
     rowB.appendChild(bRet);
+  }else{
+    var bRet2 = el("button", "btn btn-ghost", "Retour"); bRet2.type = "button";
+    bRet2.addEventListener("click", function(){ aller(retourDe("repartition")); });
+    rowB.appendChild(bRet2);
   }
   var bFin = el("button", "btn btn-primary", S.onboarded ? "Enregistrer" : "Voir mon tableau de bord");
   bFin.type = "button";
@@ -1347,8 +1551,10 @@ function vueRepartition(ec, ba){
       /* le premier cycle démarre à la dernière date de paie passée */
       S.cycleDebut = debutCycleTheorique();
       if(!S.cycleId) S.cycleId = uid();
+      S.onboarded = true; sauver(); aller("dashboard");
+      return;
     }
-    S.onboarded = true; sauver(); aller("dashboard");
+    sauver(); aller(retourDe("repartition"));
   });
   rowB.appendChild(bFin);
 
@@ -1475,6 +1681,7 @@ function ouvrirDepense(opts){
   /* ---- Tap 2 : la grille des rubriques ---- */
   function etapeGrille(){
     var act = actives();
+    titre.textContent = edition ? "Modifier la ligne" : "Nouvelle saisie";
     body.appendChild(el("p", "sub", act.length ? "Dans quelle enveloppe ?" : "Aucune enveloppe active pour l'instant."));
     if(!act.length){
       var b = el("button", "btn", "Choisir mes rubriques");
@@ -1492,7 +1699,7 @@ function ouvrirDepense(opts){
       ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
       t.appendChild(ic);
       t.appendChild(el("span", "t-nom", r.nom));
-      t.appendChild(jaugeRub(depenseRub(r.id), Number(r.montant)||0));
+      t.appendChild(jaugeRub(depenseRub(r.id), Number(r.montant)||0, estEpargne(r)));
       t.addEventListener("click", function(){ etat.rubrique = r.id; dessiner(); });
       g.appendChild(t);
     });
@@ -1503,6 +1710,10 @@ function ouvrirDepense(opts){
   function etapeMontant(){
     var r = rubriqueParId(etat.rubrique);
     if(!r){ etat.rubrique = null; dessiner(); return; }
+    var ep = estEpargne(r);
+    titre.textContent = edition
+      ? (ep ? "Modifier le versement" : "Modifier la dépense")
+      : (ep ? "Mettre de côté" : "Nouvelle dépense");
 
     /* rappel de l'enveloppe choisie (retap = changer) */
     var choisie = el("button", "rub-choisie");
@@ -1541,7 +1752,7 @@ function ouvrirDepense(opts){
     fL.appendChild(el("label", null, "Libellé (facultatif)"));
     var iL = document.createElement("input");
     iL.type = "text"; iL.className = "input"; iL.maxLength = 60;
-    iL.placeholder = "Ex. : gbaka, marché, taxi…";
+    iL.placeholder = ep ? "Ex. : tontine, réserve, projet…" : "Ex. : gbaka, marché, taxi…";
     iL.value = etat.libelle;
     iL.addEventListener("input", function(){ etat.libelle = iL.value; });
     fL.appendChild(iL);
@@ -1580,11 +1791,11 @@ function ouvrirDepense(opts){
 
     /* suppression si l'on modifie une dépense existante */
     if(edition){
-      var bSup = el("button", "btn btn-danger", "Supprimer cette dépense");
+      var bSup = el("button", "btn btn-danger", ep ? "Supprimer ce versement" : "Supprimer cette dépense");
       bSup.type = "button";
       bSup.style.marginTop = "18px";
       bSup.addEventListener("click", function(){
-        if(confirm("Supprimer cette dépense de " + fmtF(edition.montant) + " ?")){
+        if(confirm("Supprimer cette ligne de " + fmtF(edition.montant) + " ?")){
           supprimerDepense(edition.id);
           fermerFeuille(false);
           render();
@@ -1596,7 +1807,8 @@ function ouvrirDepense(opts){
 
     /* barre de validation */
     var bar = el("div", "sticky"), inn = el("div", "sticky-in");
-    var bOk = el("button", "btn btn-primary", edition ? "Enregistrer les modifications" : "Enregistrer la dépense");
+    var bOk = el("button", "btn btn-primary", edition ? "Enregistrer les modifications"
+      : (ep ? "Mettre de côté" : "Enregistrer la dépense"));
     bOk.type = "button";
     bOk.addEventListener("click", enregistrer);
     inn.appendChild(bOk);
@@ -1612,9 +1824,21 @@ function ouvrirDepense(opts){
       var dejaSansMoi = depenseRub(r.id) - (edition ? (Number(edition.montant)||0) : 0);
       var apres = dejaSansMoi + (Number(etat.montant)||0);
       var restant = affecte - apres;
-      var etatC = etatJauge(apres, affecte);
-      info.className = "info-env " + (affecte <= 0 ? "" : etatC === "rouge" ? "rouge" : etatC === "orange" ? "orange" : "vert");
-      if(affecte <= 0){
+      var etatC = etatDe(apres, affecte, ep);
+      info.className = "info-env " + (affecte <= 0 && !ep ? "" :
+        etatC === "rouge" ? "rouge" : etatC === "orange" ? "orange" :
+        etatC === "attente" ? "attente" : "vert");
+      if(ep){
+        if(affecte <= 0){
+          info.textContent = "Aucun objectif fixé ici : tout ce que vous mettez de côté est du gagné.";
+        }else if(restant > 0){
+          info.textContent = "Après ce versement, il resterait " + fmtF(restant) + " à mettre de côté dans « " + r.nom + " ».";
+        }else if(restant === 0){
+          info.textContent = "Avec ce versement, l'objectif de « " + r.nom + " » est atteint. Bravo !";
+        }else{
+          info.textContent = "Vous dépasseriez l'objectif de " + fmtF(-restant) + ". Tant mieux : c'est de l'épargne en plus.";
+        }
+      }else if(affecte <= 0){
         info.textContent = "Aucun montant n'est affecté à cette enveloppe pour l'instant.";
       }else if(restant >= 0){
         info.textContent = "Après cette dépense, il resterait " + fmtF(restant) + " dans « " + r.nom + " ».";
@@ -1645,9 +1869,11 @@ function ouvrirDepense(opts){
       });
     }
     sauver();
+    var rFin = rubriqueParId(etat.rubrique);
     fermerFeuille(false);
     render();
-    toast(edition ? "Modification enregistrée" : "Dépense enregistrée ✓");
+    toast(edition ? "Modification enregistrée"
+        : (estEpargne(rFin) ? "Mis de côté ✓ Bravo" : "Dépense enregistrée ✓"));
   }
 
   dessiner();
@@ -1681,6 +1907,21 @@ function vueDashboard(ec, ba){
     bAv.addEventListener("click", ouvrirNouveauCycle);
     av.appendChild(bAv);
     ec.appendChild(av);
+  }
+
+  /* --- félicitations d'épargne après une clôture (F10) --- */
+  if(S.epargneFelicitee !== null && S.epargneFelicitee !== undefined){
+    var mEp = Number(S.epargneFelicitee) || 0;
+    var ave = el("div", "avis avis-vert");
+    ave.appendChild(el("div", "avis-t", mEp > 0 ? "Bravo, vous avez épargné" : "Nouveau cycle, nouvelle occasion"));
+    ave.appendChild(el("p", "avis-p", mEp > 0
+      ? "Sur le cycle qui vient d'être archivé, vous avez mis " + fmtF(mEp) + " de côté. C'est autant de tranquillité pour la suite."
+      : "Le cycle précédent est archivé. Ce mois-ci, même une petite somme mise de côté comptera."));
+    var bMerci = el("button", "btn btn-ghost", mEp > 0 ? "Merci !" : "C'est noté");
+    bMerci.type = "button";
+    bMerci.addEventListener("click", function(){ S.epargneFelicitee = null; sauver(); render(); });
+    ave.appendChild(bMerci);
+    ec.appendChild(ave);
   }
 
   /* --- rappel doux de sauvegarde après une clôture (F7) --- */
@@ -1723,11 +1964,16 @@ function vueDashboard(ec, ba){
   tete.appendChild(jg);
 
   var bas = el("div", "env-bas");
-  bas.appendChild(el("span", "muted", "Dépensé : " + fmtF(dep) + " sur " + fmtF(tot)));
+  bas.appendChild(el("span", "muted", "Sorti : " + fmtF(dep) + " sur " + fmtF(tot)));
   if(jours && dispo > 0){
     bas.appendChild(el("span", "muted", "≈ " + fmtF(Math.floor(dispo / jours)) + " / jour"));
   }
   tete.appendChild(bas);
+  /* Sprint 4 — ce qui a été mis de côté n'est pas perdu : on le dit (F10) */
+  var epCycle = totalEpargne();
+  if(epCycle > 0){
+    tete.appendChild(el("div", "bravo", "dont " + fmtF(epCycle) + " mis de côté 👏"));
+  }
   ec.appendChild(tete);
 
   /* --- rappel du déficit de répartition (F2) --- */
@@ -1752,7 +1998,7 @@ function vueDashboard(ec, ba){
         affG += Number(r.montant) || 0;
         depG += depenseRub(r.id);
       });
-      ec.appendChild(enteteGroupe(g, affG, depG));
+      ec.appendChild(enteteGroupe(g, affG, depG, g === GROUPE_EPARGNE));
       membres.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); })
         .forEach(function(r){ ec.appendChild(carteEnveloppe(r)); });
     });
@@ -1804,66 +2050,38 @@ function vueDashboard(ec, ba){
   aideCyc.style.margin = "8px 0 0";
   ec.appendChild(aideCyc);
 
-  /* --- modifier --- */
-  ec.appendChild(el("h2", null, "Modifier"));
-  var r1 = el("div", "row-btns");
-  var b1 = el("button", "btn", "Répartition"); b1.type = "button";
-  b1.addEventListener("click", function(){ aller("repartition"); });
-  var b2 = el("button", "btn", "Rubriques"); b2.type = "button";
-  b2.addEventListener("click", function(){ aller("rubriques"); });
-  r1.appendChild(b1); r1.appendChild(b2);
-  ec.appendChild(r1);
-  var b3 = el("button", "btn", "Revenus et jour de paie"); b3.type = "button";
-  b3.style.marginTop = "8px";
-  b3.addEventListener("click", function(){ aller("revenus"); });
-  ec.appendChild(b3);
-
-  /* --- historique et données --- */
-  ec.appendChild(el("h2", null, "Historique et données"));
+  /* --- réglages et historique (Sprint 4 : le tableau de bord s'allège) --- */
+  ec.appendChild(el("h2", null, "Aller plus loin"));
+  var rgl = el("div", "row-btns");
+  var bR = el("button", "btn", "Réglages"); bR.type = "button";
+  bR.addEventListener("click", function(){ ouvrirVue("reglages", "dashboard"); });
   var n = S.cycles.length;
-  var bH = el("button", "btn", n ? "Historique (" + n + (n > 1 ? " cycles)" : " cycle)") : "Historique");
-  bH.type = "button";
-  bH.addEventListener("click", function(){ aller("historique"); });
-  ec.appendChild(bH);
-  var bs = blocSauvegarde();
-  bs.style.marginTop = "8px";
-  ec.appendChild(bs);
-  var aideS = el("p", "tiny muted", S.derniereSauvegarde
-    ? "Dernière sauvegarde : " + dateComplete(S.derniereSauvegarde) + "."
-    : "Aucune sauvegarde pour l'instant. Le fichier reste sur votre téléphone.");
-  aideS.style.margin = "8px 0 0";
-  ec.appendChild(aideS);
+  var bH = el("button", "btn", n ? "Historique (" + n + ")" : "Historique"); bH.type = "button";
+  bH.addEventListener("click", function(){ ouvrirVue("historique", "dashboard"); });
+  rgl.appendChild(bR); rgl.appendChild(bH);
+  ec.appendChild(rgl);
 
-  var b4 = el("button", "btn btn-danger", "Réinitialiser MonDjai"); b4.type = "button";
-  b4.style.marginTop = "26px";
-  b4.addEventListener("click", function(){
-    if(confirm("Effacer toutes vos données MonDjai sur cet appareil — cycle en cours et cycles archivés ? Cette action est définitive.\n\nPensez à sauvegarder avant, si vous voulez pouvoir revenir en arrière.")){
-      try{ localStorage.removeItem(CLE); }catch(e){}
-      S = neuf();
-      rubOuverte = null; cycleOuvert = null; brouillonCycle = null;
-      vue = "revenus"; render();
-    }
-  });
-  ec.appendChild(b4);
-
-  var note = el("p", "tiny muted", "Vos données restent sur cet appareil.");
-  note.style.margin = "14px 0 0";
+  var note = el("p", "tiny muted",
+    "Revenus, rubriques, code d'accès et sauvegarde sont dans les Réglages. Vos données restent sur cet appareil.");
+  note.style.margin = "12px 0 0";
   ec.appendChild(note);
 
   /* --- bouton « + » flottant (tap 1) --- */
   boutonPlus(ba, null);
 }
 
-/* --- carte d'une enveloppe avec sa jauge --- */
+/* --- carte d'une enveloppe avec sa jauge ---
+   Sprint 4 : dans l'épargne, on « met de côté » et rien ne passe au rouge (F10). */
 function carteEnveloppe(r){
+  var ep = estEpargne(r);
   var affecte = Number(r.montant) || 0;
   var d = depenseRub(r.id);
-  var etat = etatJauge(d, affecte);
+  var etat = etatDe(d, affecte, ep);
   var reste = affecte - d;
 
   var b = el("button", "env" + (etat === "rouge" ? " alerte" : ""));
   b.type = "button";
-  b.setAttribute("aria-label", "Voir les dépenses de " + r.nom);
+  b.setAttribute("aria-label", (ep ? "Voir les versements de " : "Voir les dépenses de ") + r.nom);
 
   var haut = el("div", "env-haut");
   var ic = el("span", "ico", r.icone);
@@ -1873,20 +2091,32 @@ function carteEnveloppe(r){
   haut.appendChild(el("span", "nom", r.nom));
   if(!r.active) haut.appendChild(el("span", "tag", "désactivée"));
   var m = el("div", "env-mont", fmtF(d));
-  m.appendChild(el("small", null, "sur " + fmtF(affecte)));
+  m.appendChild(el("small", null, (ep ? "objectif " : "sur ") + fmtF(affecte)));
   haut.appendChild(m);
   haut.appendChild(el("span", "chev", "›"));
   b.appendChild(haut);
 
-  b.appendChild(jaugeRub(d, affecte));
+  b.appendChild(jaugeRub(d, affecte, ep));
 
   var bas = el("div", "env-bas");
-  var g = el("span", classeEtat(etat), affecte > 0 ? pct(d / affecte * 100) + " utilisé" : (d > 0 ? "hors enveloppe" : "rien d'affecté"));
-  bas.appendChild(g);
-  var dr = el("span", reste < 0 ? "c-rouge" : "muted",
-    reste >= 0 ? "Reste " + fmtF(reste) : "Dépassement de " + fmtF(-reste));
-  bas.appendChild(dr);
+  var gauche = affecte > 0
+    ? pct(d / affecte * 100) + (ep ? " de l'objectif" : " utilisé")
+    : (d > 0 ? (ep ? "mis de côté" : "hors enveloppe") : "rien d'affecté");
+  bas.appendChild(el("span", classeEtat(etat), gauche));
+  if(ep){
+    bas.appendChild(el("span", classeEtat(etat), motEpargne(d, affecte)));
+  }else{
+    bas.appendChild(el("span", reste < 0 ? "c-rouge" : "muted",
+      reste >= 0 ? "Reste " + fmtF(reste) : "Dépassement de " + fmtF(-reste)));
+  }
   b.appendChild(bas);
+
+  var rl = rappelLissage(r);
+  if(rl && (r.periodicite || "mensuel") !== "mensuel"){
+    var lr = el("div", "tiny muted", rl);
+    lr.style.marginTop = "6px";
+    b.appendChild(lr);
+  }
 
   b.addEventListener("click", function(){ ouvrirRubrique(r.id); });
   return b;
@@ -1938,68 +2168,78 @@ function vueRubriqueDetail(ec, ba){
   var r = rubriqueParId(rubOuverte);
   if(!r){ aller("dashboard"); return; }
 
+  var ep = estEpargne(r);
   var affecte = Number(r.montant) || 0;
   var d = depenseRub(r.id);
-  var etat = etatJauge(d, affecte);
+  var etat = etatDe(d, affecte, ep);
   var reste = affecte - d;
 
-  var bRet = el("button", "btn btn-ghost btn-line", "‹ Tableau de bord");
-  bRet.type = "button";
-  bRet.style.marginBottom = "14px";
-  bRet.addEventListener("click", function(){ aller("dashboard"); });
-  ec.appendChild(bRet);
+  ec.appendChild(boutonRetour("Tableau de bord", "dashboard"));
 
   var t = el("h1", null, r.icone + " " + r.nom);
   ec.appendChild(t);
-  ec.appendChild(el("p", "sub", r.groupe));
+  var sousT = r.groupe;
+  var rl = rappelLissage(r);
+  if(rl && (r.periodicite || "mensuel") !== "mensuel") sousT += " · " + rl;
+  ec.appendChild(el("p", "sub", sousT));
 
   /* résumé */
   var carte = el("div", "tb-tete");
   var haut = el("div", "env-haut");
   var bloc = el("div");
   bloc.style.flex = "1";
-  bloc.appendChild(el("div", "lab tiny muted", "DÉPENSÉ"));
+  bloc.appendChild(el("div", "lab tiny muted", ep ? "MIS DE CÔTÉ" : "DÉPENSÉ"));
   var gr = el("div", "big", fmtF(d));
   if(etat === "rouge") gr.className = "big c-rouge";
+  if(ep && d > 0) gr.className = "big c-vert";
   bloc.appendChild(gr);
-  bloc.appendChild(el("div", "tiny muted", "sur " + fmtF(affecte) + " affectés"));
+  bloc.appendChild(el("div", "tiny muted", (ep ? "sur un objectif de " : "sur ") + fmtF(affecte) + (ep ? "" : " affectés")));
   haut.appendChild(bloc);
   carte.appendChild(haut);
-  var jg = jaugeRub(d, affecte);
+  var jg = jaugeRub(d, affecte, ep);
   jg.style.marginTop = "10px";
   carte.appendChild(jg);
   var bas = el("div", "env-bas");
-  bas.appendChild(el("span", classeEtat(etat), affecte > 0 ? pct(d / affecte * 100) + " utilisé" : "rien d'affecté"));
-  bas.appendChild(el("span", reste < 0 ? "c-rouge" : "muted",
-    reste >= 0 ? "Reste " + fmtF(reste) : "Dépassement de " + fmtF(-reste)));
+  bas.appendChild(el("span", classeEtat(etat),
+    affecte > 0 ? pct(d / affecte * 100) + (ep ? " de l'objectif" : " utilisé") : "rien d'affecté"));
+  if(ep){
+    bas.appendChild(el("span", classeEtat(etat), motEpargne(d, affecte)));
+  }else{
+    bas.appendChild(el("span", reste < 0 ? "c-rouge" : "muted",
+      reste >= 0 ? "Reste " + fmtF(reste) : "Dépassement de " + fmtF(-reste)));
+  }
   carte.appendChild(bas);
   ec.appendChild(carte);
 
-  if(reste < 0){
-    var msg = el("p", "small muted", "L'enveloppe est dépassée. MonDjai ne bloque rien : à vous de décider où prendre la différence.");
-    ec.appendChild(msg);
+  if(ep && d > affecte && affecte > 0){
+    ec.appendChild(el("p", "small c-vert", "Vous avez mis plus que prévu de côté. C'est une réussite, pas un dépassement."));
+  }else if(!ep && reste < 0){
+    ec.appendChild(el("p", "small muted", "L'enveloppe est dépassée. MonDjai ne bloque rien : à vous de décider où prendre la différence."));
   }
 
-  /* liste des dépenses */
+  /* liste des dépenses (ou des versements) */
   var liste = triDepenses(depensesDe(r.id));
-  ec.appendChild(el("h2", null, liste.length ? "Ses dépenses (" + liste.length + ")" : "Ses dépenses"));
+  var mot = ep ? "versements" : "dépenses";
+  ec.appendChild(el("h2", null, liste.length ? "Ses " + mot + " (" + liste.length + ")" : "Ses " + mot));
   var card = el("div", "card");
   if(!liste.length){
-    card.appendChild(el("div", "vide-msg", "Aucune dépense dans cette enveloppe pour l'instant."));
+    card.appendChild(el("div", "vide-msg", ep
+      ? "Rien n'a encore été mis de côté ici. Le bouton « + » est là pour ça."
+      : "Aucune dépense dans cette enveloppe pour l'instant."));
   }else{
     liste.forEach(function(dep){ card.appendChild(ligneDepense(dep, false)); });
   }
   ec.appendChild(card);
 
-  var aide = el("p", "tiny muted", "Appuyez sur une dépense pour la modifier, ou sur × pour la supprimer.");
+  var aide = el("p", "tiny muted", "Appuyez sur une ligne pour la modifier, ou sur × pour la supprimer.");
   aide.style.margin = "10px 0 0";
   ec.appendChild(aide);
 
   /* modifier le montant affecté */
-  var bRep = el("button", "btn", "Modifier la répartition");
+  var bRep = el("button", "btn", ep ? "Modifier l'objectif" : "Modifier la répartition");
   bRep.type = "button";
   bRep.style.marginTop = "18px";
-  bRep.addEventListener("click", function(){ aller("repartition"); });
+  bRep.addEventListener("click", function(){ ouvrirVue("repartition", "dashboard"); });
   ec.appendChild(bRep);
 
   /* « + » pré-réglé sur cette enveloppe : 2 taps */
@@ -2025,6 +2265,12 @@ function vueNouveauCycle(ec, ba){
   ec.appendChild(el("p", "sub",
     "Tout est prérempli à partir du cycle en cours : ajustez ce qui a changé, puis validez. Le cycle démarré le "
     + dateComplete(S.cycleDebut) + " sera archivé avec ses dépenses."));
+  var epEnCours = totalEpargne();
+  if(epEnCours > 0){
+    var bv = el("p", "bravo", "Sur le cycle qui se termine, vous avez mis " + fmtF(epEnCours) + " de côté. Beau travail.");
+    bv.style.margin = "-14px 0 18px";
+    ec.appendChild(bv);
+  }
 
   /* --- revenus du nouveau cycle --- */
   ec.appendChild(el("h2", null, "Revenus de ce cycle"));
@@ -2082,8 +2328,12 @@ function vueNouveauCycle(ec, ba){
 
   /* --- répartition du nouveau cycle, par groupe --- */
   ec.appendChild(el("h2", null, "Répartition"));
+  var aideL2 = el("p", "tiny muted",
+    "L'assistant de lissage reste disponible ici : « Lisser un montant » recalcule la part mensuelle d'une dépense qui ne tombe pas tous les mois.");
+  aideL2.style.margin = "0 0 12px";
+  ec.appendChild(aideL2);
   var act = actives();
-  var pcts = {}, champs = {};
+  var pcts = {};
   if(!act.length){
     var c0 = el("div", "card");
     c0.appendChild(el("div", "vide-msg", "Aucune rubrique active. Ouvrez « Rubriques » pour en choisir."));
@@ -2102,36 +2352,14 @@ function vueNouveauCycle(ec, ba){
       ec.appendChild(h);
       pcts["__grp_" + g] = sous;
 
+      var pilote = {
+        maj: function(){ maj(); },
+        reste: function(){ return brTotalRevenus() - brTotalReparti(); }
+      };
       membres.forEach(function(r){
-        var row = el("div", "repart");
-        row.style.borderLeftColor = r.couleur;
-        row.appendChild(el("span", "ico", r.icone));
-        var bloc = el("div");
-        bloc.style.flex = "1"; bloc.style.minWidth = "0";
-        bloc.appendChild(el("div", "nom", r.nom));
-        var p = el("span", "pct", "0 %");
-        pcts[r.id] = p;
-        bloc.appendChild(p);
-        row.appendChild(bloc);
-
-        var bReste = el("button", "reste-ici", "+ reste");
-        bReste.type = "button";
-        bReste.title = "Mettre tout le reste dans cette rubrique";
-        row.appendChild(bReste);
-
-        var champ = champMontant(b.montants[r.id] || 0, function(v){ b.montants[r.id] = v; maj(); });
-        champs[r.id] = champ;
-        row.appendChild(champ);
-
-        bReste.addEventListener("click", function(){
-          var rst = brTotalRevenus() - brTotalReparti();
-          if(rst <= 0) return;
-          b.montants[r.id] = (Number(b.montants[r.id]) || 0) + rst;
-          champ.value = fmt(b.montants[r.id]);
-          champ.classList.remove("vide");
-          maj();
-        });
-        ec.appendChild(row);
+        ec.appendChild(ligneRepartition(r, Number(b.montants[r.id]) || 0, function(v){
+          b.montants[r.id] = v; maj();
+        }, pilote, pcts));
       });
     });
   }
@@ -2199,11 +2427,8 @@ function vueNouveauCycle(ec, ba){
    ÉCRAN 7 — Historique des cycles (F6)
    ============================================================== */
 function vueHistorique(ec, ba){
-  var bRet = el("button", "btn btn-ghost btn-line", "‹ Tableau de bord");
-  bRet.type = "button";
-  bRet.style.marginBottom = "14px";
-  bRet.addEventListener("click", function(){ aller("dashboard"); });
-  ec.appendChild(bRet);
+  var cible = retourDe("historique");
+  ec.appendChild(boutonRetour(cible === "reglages" ? "Réglages" : "Tableau de bord", cible));
 
   ec.appendChild(el("h1", null, "Historique"));
   ec.appendChild(el("p", "sub", "Vos cycles clôturés, du plus récent au plus ancien."));
@@ -2236,6 +2461,8 @@ function vueHistorique(ec, ba){
       b.appendChild(g);
 
       b.appendChild(jaugeRub(dep, rev));
+      var epC = cycEpargne(c);
+      if(epC > 0) b.appendChild(el("div", "bravo", fmtF(epC) + " mis de côté 👏"));
       b.addEventListener("click", function(){ ouvrirCycle(c.id); });
       ec.appendChild(b);
     });
@@ -2259,11 +2486,7 @@ function vueCycleArchive(ec, ba){
   var rev = cycRevenus(c), rep = cycReparti(c), dep = cycDepense(c);
   var ecart = rev - dep;
 
-  var bRet = el("button", "btn btn-ghost btn-line", "‹ Historique");
-  bRet.type = "button";
-  bRet.style.marginBottom = "14px";
-  bRet.addEventListener("click", function(){ aller("historique"); });
-  ec.appendChild(bRet);
+  ec.appendChild(boutonRetour("Historique", "historique"));
 
   ec.appendChild(el("h1", null, "Cycle clôturé"));
   var sub = el("p", "sub", periodeCycle(c));
@@ -2287,6 +2510,10 @@ function vueCycleArchive(ec, ba){
   bas.appendChild(el("span", ecart >= 0 ? "c-vert" : "c-rouge",
     ecart >= 0 ? "Resté " + fmtF(ecart) : "Dépassement de " + fmtF(-ecart)));
   tete.appendChild(bas);
+  var epC2 = cycEpargne(c);
+  if(epC2 > 0){
+    tete.appendChild(el("div", "bravo", "dont " + fmtF(epC2) + " mis de côté 👏"));
+  }
   ec.appendChild(tete);
 
   /* --- revenus --- */
@@ -2330,14 +2557,15 @@ function vueCycleArchive(ec, ba){
         affG += Number(r.montant) || 0;
         depG += cycDepenseRub(c, r.id);
       });
-      ec.appendChild(enteteGroupe(g, affG, depG));
+      ec.appendChild(enteteGroupe(g, affG, depG, g === GROUPE_EPARGNE));
 
       var carte = el("div", "card");
       membres.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); }).forEach(function(r){
+        var epR = (g === GROUPE_EPARGNE);
         var aff = Number(r.montant) || 0;
         var d = cycDepenseRub(c, r.id);
         var e = aff - d;
-        var etat = etatJauge(d, aff);
+        var etat = etatDe(d, aff, epR);
 
         var l = el("div", "ro");
         var h = el("div", "ro-h");
@@ -2347,15 +2575,20 @@ function vueCycleArchive(ec, ba){
         h.appendChild(ic);
         h.appendChild(el("span", "nom", r.nom));
         var m = el("div", "ro-m", fmtF(d));
-        m.appendChild(el("small", null, "sur " + fmtF(aff)));
+        m.appendChild(el("small", null, (epR ? "objectif " : "sur ") + fmtF(aff)));
         h.appendChild(m);
         l.appendChild(h);
-        l.appendChild(jaugeRub(d, aff));
+        l.appendChild(jaugeRub(d, aff, epR));
         var b2 = el("div", "ro-b");
         b2.appendChild(el("span", classeEtat(etat),
-          aff > 0 ? pct(d / aff * 100) + " utilisé" : (d > 0 ? "hors enveloppe" : "rien d'affecté")));
-        b2.appendChild(el("span", e < 0 ? "c-rouge" : "muted",
-          e >= 0 ? "Écart : + " + fmtF(e) : "Écart : − " + fmtF(-e)));
+          aff > 0 ? pct(d / aff * 100) + (epR ? " de l'objectif" : " utilisé")
+                  : (d > 0 ? (epR ? "mis de côté" : "hors enveloppe") : "rien d'affecté")));
+        if(epR){
+          b2.appendChild(el("span", classeEtat(etat), motEpargne(d, aff)));
+        }else{
+          b2.appendChild(el("span", e < 0 ? "c-rouge" : "muted",
+            e >= 0 ? "Écart : + " + fmtF(e) : "Écart : − " + fmtF(-e)));
+        }
         l.appendChild(b2);
         carte.appendChild(l);
       });
@@ -2383,7 +2616,7 @@ function vueCycleArchive(ec, ba){
   /* --- journal des dépenses du cycle --- */
   var liste = triDepenses(c.depenses);
   ec.appendChild(el("h2", null, liste.length
-    ? "Ses dépenses (" + liste.length + ")" : "Ses dépenses"));
+    ? "Ses sorties (" + liste.length + ")" : "Ses sorties"));
   var cd = el("div", "card");
   if(!liste.length){
     cd.appendChild(el("div", "vide-msg", "Aucune dépense n'a été saisie sur ce cycle."));
@@ -2416,6 +2649,608 @@ function vueCycleArchive(ec, ba){
     "Un cycle archivé ne se modifie plus : c'est la photo de votre mois, telle qu'elle était à la clôture.");
   note.style.margin = "12px 0 0";
   ec.appendChild(note);
+}
+
+/* ==============================================================
+   SPRINT 4 — FEUILLE PLEIN ÉCRAN GÉNÉRIQUE
+   (même mécanique que la saisie de dépense : bouton retour du
+   téléphone et touche Échap referment la feuille)
+   ============================================================== */
+function creerFeuille(titreTxt){
+  if(feuille) fermerFeuille(false);
+  var sh = el("div", "sheet");
+  sh.setAttribute("role", "dialog");
+  sh.setAttribute("aria-modal", "true");
+
+  var top = el("div", "sheet-top");
+  var topIn = el("div", "sheet-top-in");
+  var t = el("div", "sheet-titre", titreTxt);
+  var bF = el("button", "icon-btn", "×");
+  bF.type = "button"; bF.setAttribute("aria-label", "Fermer");
+  bF.addEventListener("click", function(){ fermerFeuille(false); });
+  topIn.appendChild(t); topIn.appendChild(bF);
+  top.appendChild(topIn); sh.appendChild(top);
+
+  var body = el("div", "sheet-body");
+  sh.appendChild(body);
+
+  document.body.appendChild(sh);
+  document.body.style.overflow = "hidden";
+  feuille = sh;
+  try{ history.pushState({mdFeuille:1}, ""); }catch(e){}
+  return {sh: sh, body: body, titre: t};
+}
+
+/* ==============================================================
+   SPRINT 4 — CODE D'ACCÈS (F8)
+   Le code décourage les curieux ; il ne chiffre pas les données.
+   C'est écrit noir sur blanc dans les Réglages.
+   ============================================================== */
+
+/* Pavé numérique + quatre points. opts.onComplet(code, api) */
+function blocCode(opts){
+  var wrap = el("div", "code-bloc");
+  var pts = el("div", "points");
+  var points = [];
+  for(var i = 0; i < 4; i++){
+    var d = el("div", "pt");
+    pts.appendChild(d); points.push(d);
+  }
+  wrap.appendChild(pts);
+  var err = el("div", "err-code", "");
+  wrap.appendChild(err);
+
+  var saisie = "";
+  function majPoints(){
+    points.forEach(function(d, i){ d.classList.toggle("on", i < saisie.length); });
+  }
+  var api = {
+    reset: function(){ saisie = ""; err.textContent = ""; majPoints(); },
+    erreur: function(m){ saisie = ""; err.textContent = m; majPoints(); }
+  };
+  function taper(c){
+    if(saisie.length >= 4) return;
+    err.textContent = "";
+    saisie += c;
+    majPoints();
+    if(saisie.length === 4){
+      var code = saisie;
+      setTimeout(function(){ opts.onComplet(code, api); }, 130);
+    }
+  }
+  var clav = el("div", "clav");
+  ["1","2","3","4","5","6","7","8","9"].forEach(function(c){
+    var b = el("button", "tou", c);
+    b.type = "button";
+    b.addEventListener("click", function(){ taper(c); });
+    clav.appendChild(b);
+  });
+  var vide = el("button", "tou tou-vide", "");
+  vide.type = "button"; vide.tabIndex = -1; vide.setAttribute("aria-hidden", "true");
+  clav.appendChild(vide);
+  var b0 = el("button", "tou", "0");
+  b0.type = "button";
+  b0.addEventListener("click", function(){ taper("0"); });
+  clav.appendChild(b0);
+  var bDel = el("button", "tou", "⌫");
+  bDel.type = "button"; bDel.setAttribute("aria-label", "Effacer le dernier chiffre");
+  bDel.addEventListener("click", function(){
+    saisie = saisie.slice(0, -1);
+    err.textContent = "";
+    majPoints();
+  });
+  clav.appendChild(bDel);
+  wrap.appendChild(clav);
+
+  wrap.api = api;
+  return wrap;
+}
+
+/* Écran d'ouverture verrouillé : rien d'autre n'est dessiné */
+function vueVerrou(ec, ba){
+  var w = el("div", "verrou");
+  w.appendChild(el("h1", null, "Bonjour"));
+  w.appendChild(el("p", "sub", "Entrez votre code à 4 chiffres pour ouvrir MonDjai."));
+  w.appendChild(blocCode({
+    onComplet: function(code, api){
+      if(code === S.pin){
+        deverrouille = true;
+        render();
+      }else{
+        api.erreur("Ce code ne correspond pas. Réessayez tranquillement.");
+      }
+    }
+  }));
+  var oub = el("button", "lien", "J'ai oublié mon code");
+  oub.type = "button";
+  oub.addEventListener("click", oubliCode);
+  w.appendChild(oub);
+  ec.appendChild(w);
+}
+
+/* Code oublié : on le dit franchement, il n'y a pas de porte dérobée */
+function oubliCode(){
+  var m1 = "Votre code n'est écrit nulle part ailleurs que sur ce téléphone : personne ne peut vous le rappeler.\n\n"
+         + "La seule voie est d'effacer les données de cet appareil, puis de repartir de votre dernier fichier de sauvegarde.\n\n"
+         + "Voulez-vous continuer ?";
+  if(!confirm(m1)) return;
+  var m2 = "Effacer maintenant les données MonDjai de cet appareil ?\n\n"
+         + "C'est définitif. Juste après, vous pourrez restaurer votre fichier « mondjai-sauvegarde-….json ».";
+  if(!confirm(m2)) return;
+  try{ localStorage.removeItem(CLE); }catch(e){}
+  S = neuf();
+  deverrouille = true;
+  rubOuverte = null; cycleOuvert = null; brouillonCycle = null; retours = {};
+  vue = "revenus";
+  sauver();
+  render();
+  toast("Appareil remis à zéro");
+}
+
+/* Activer ou modifier le code : saisie, puis confirmation */
+function ouvrirDefinirCode(){
+  var f = creerFeuille(S.pin ? "Modifier le code" : "Activer le code");
+  var titre = el("h1", null, "Choisissez un code");
+  var sous = el("p", "sub", "Quatre chiffres, faciles à retenir pour vous.");
+  f.body.appendChild(titre);
+  f.body.appendChild(sous);
+  var zone = el("div");
+  f.body.appendChild(zone);
+
+  var premier = "";
+  function dessiner(msg){
+    zone.innerHTML = "";
+    titre.textContent = premier ? "Confirmez le code" : "Choisissez un code";
+    sous.textContent = premier ? "Saisissez-le une seconde fois."
+                               : "Quatre chiffres, faciles à retenir pour vous.";
+    var bloc = blocCode({
+      onComplet: function(code){
+        if(!premier){
+          premier = code;
+          dessiner("");
+        }else if(code === premier){
+          S.pin = code;
+          deverrouille = true;
+          sauver();
+          fermerFeuille(false);
+          render();
+          toast("Code activé ✓");
+        }else{
+          premier = "";
+          dessiner("Les deux codes sont différents. On recommence.");
+        }
+      }
+    });
+    zone.appendChild(bloc);
+    if(msg) bloc.api.erreur(msg);
+  }
+  dessiner("");
+}
+
+function desactiverCode(){
+  if(!confirm("Désactiver le code d'accès ?\n\nMonDjai s'ouvrira alors directement, sans rien demander.")) return;
+  S.pin = null;
+  deverrouille = true;
+  sauver();
+  render();
+  toast("Code désactivé");
+}
+
+/* ==============================================================
+   SPRINT 4 — ASSISTANT DE LISSAGE : le panneau dépliable (F9)
+   ============================================================== */
+function blocLissage(r, onAppliquer, onMaj){
+  var p = el("div", "lissage");
+  p.hidden = true;
+  p.appendChild(el("div", "liss-t", "Lisser cette dépense"));
+  p.appendChild(el("p", "liss-p",
+    "Indiquez ce que vous payez réellement et à quelle fréquence : MonDjai calcule la part à prévoir chaque mois."));
+
+  var ligne = el("div", "liss-ligne");
+  ligne.appendChild(el("span", "liss-lab", "Montant réel"));
+  var champ = champMontant(Number(r.montantReel) || 0, function(v){
+    r.montantReel = v; sauver(); majResultat();
+  });
+  ligne.appendChild(champ);
+  p.appendChild(ligne);
+
+  var chips = el("div", "chips");
+  chips.style.margin = "11px 0 12px";
+  PERIODICITES.forEach(function(pe){
+    var c = el("button", "chip", pe.label);
+    c.type = "button";
+    c.setAttribute("aria-pressed", (r.periodicite || "mensuel") === pe.cle ? "true" : "false");
+    c.addEventListener("click", function(){
+      r.periodicite = pe.cle; sauver();
+      chips.querySelectorAll(".chip").forEach(function(x){ x.setAttribute("aria-pressed", "false"); });
+      c.setAttribute("aria-pressed", "true");
+      majResultat();
+    });
+    chips.appendChild(c);
+  });
+  p.appendChild(chips);
+
+  var res = el("div", "liss-res", "");
+  p.appendChild(res);
+
+  var row = el("div", "row-btns");
+  var bRet = el("button", "btn btn-ghost", "Retirer");
+  bRet.type = "button";
+  bRet.addEventListener("click", function(){
+    r.montantReel = 0; r.periodicite = "mensuel"; sauver();
+    champ.value = fmt(0); champ.classList.add("vide");
+    chips.querySelectorAll(".chip").forEach(function(x, i){
+      x.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    });
+    majResultat();
+    if(onMaj) onMaj();
+  });
+  var bApp = el("button", "btn btn-primary", "Appliquer");
+  bApp.type = "button";
+  bApp.addEventListener("click", function(){
+    var prov = provisionRub(r);
+    if(prov <= 0) return;
+    onAppliquer(prov);
+    if(onMaj) onMaj();
+    p.hidden = true;
+    toast("Provision mensuelle appliquée ✓");
+  });
+  row.appendChild(bRet); row.appendChild(bApp);
+  p.appendChild(row);
+
+  function majResultat(){
+    var prov = provisionRub(r);
+    var pe = periodDe(r.periodicite);
+    res.textContent = prov > 0
+      ? "Provision mensuelle : " + fmtF(prov) + "  (" + fmtF(Number(r.montantReel) || 0) + " " + pe.par + ")"
+      : "Saisissez le montant réel pour voir la part mensuelle.";
+    bApp.disabled = !(prov > 0);
+    bApp.textContent = prov > 0 ? "Mettre " + fmtF(prov) : "Appliquer";
+  }
+  majResultat();
+  return p;
+}
+
+/* Ligne de répartition complète : rubrique + lien de lissage + panneau.
+   Utilisée par l'écran Répartition et par l'écran Nouveau cycle. */
+function ligneRepartition(r, valeur, onChange, onMaj, pcts){
+  var frag = document.createDocumentFragment();
+
+  var row = el("div", "repart");
+  row.style.borderLeftColor = r.couleur;
+  var ic = el("span", "ico", r.icone);
+  ic.style.background = "rgba(255,255,255,.05)";
+  ic.style.boxShadow = "inset 0 0 0 1px " + r.couleur + "55";
+  row.appendChild(ic);
+
+  var bloc = el("div");
+  bloc.style.flex = "1"; bloc.style.minWidth = "0";
+  bloc.appendChild(el("div", "nom", r.nom));
+  var sousLigne = el("div", "sous-ligne");
+  var pc = el("span", "pct", "0 %");
+  if(pcts) pcts[r.id] = pc;
+  sousLigne.appendChild(pc);
+  var lien = el("button", "lien-liss", "");
+  lien.type = "button";
+  sousLigne.appendChild(lien);
+  bloc.appendChild(sousLigne);
+  row.appendChild(bloc);
+
+  var bReste = el("button", "reste-ici", "+ reste");
+  bReste.type = "button";
+  bReste.title = "Mettre tout le reste dans cette rubrique";
+  row.appendChild(bReste);
+
+  var champ = champMontant(valeur, function(v){ onChange(v); });
+  row.appendChild(champ);
+
+  function poser(v){
+    onChange(v);
+    champ.value = fmt(v);
+    champ.classList.toggle("vide", v === 0);
+  }
+  bReste.addEventListener("click", function(){
+    var rst = onMaj.reste();
+    if(rst <= 0) return;
+    poser((chiffres(champ.value) || 0) + rst);
+    onMaj.maj();
+  });
+
+  var panneau = blocLissage(r, function(prov){
+    poser(prov);
+    onMaj.maj();
+  }, majLien);
+  function majLien(){
+    var t = rappelLissage(r);
+    lien.textContent = t ? "≈ " + t : "Lisser un montant";
+  }
+  lien.addEventListener("click", function(){ panneau.hidden = !panneau.hidden; });
+  majLien();
+
+  frag.appendChild(row);
+  frag.appendChild(panneau);
+  return frag;
+}
+
+/* ==============================================================
+   SPRINT 4 — MODIFIER UNE RUBRIQUE (nom, icône, couleur, groupe)
+   ============================================================== */
+function ouvrirEditionRubrique(r, apres){
+  var f = creerFeuille("Modifier la rubrique");
+  f.body.appendChild(el("h1", null, r.icone + " " + r.nom));
+  f.body.appendChild(el("p", "sub", "Renommez-la, changez son icône, sa couleur ou son groupe. Ses dépenses ne bougent pas."));
+
+  /* nom */
+  var fNom = el("div", "field");
+  fNom.appendChild(el("label", null, "Nom"));
+  var iNom = document.createElement("input");
+  iNom.type = "text"; iNom.className = "input"; iNom.maxLength = 40; iNom.value = r.nom;
+  fNom.appendChild(iNom); f.body.appendChild(fNom);
+
+  /* icône */
+  var choixEmoji = r.icone;
+  var fEm = el("div", "field");
+  fEm.appendChild(el("label", null, "Icône"));
+  var wEm = el("div", "emojis");
+  var listeEm = EMOJIS.slice();
+  if(listeEm.indexOf(r.icone) < 0) listeEm.unshift(r.icone);
+  listeEm.forEach(function(e){
+    var b = el("button", "em", e);
+    b.type = "button";
+    b.setAttribute("aria-pressed", e === r.icone ? "true" : "false");
+    b.setAttribute("aria-label", "Icône " + e);
+    b.addEventListener("click", function(){
+      choixEmoji = e;
+      wEm.querySelectorAll(".em").forEach(function(x){ x.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+    });
+    wEm.appendChild(b);
+  });
+  fEm.appendChild(wEm); f.body.appendChild(fEm);
+
+  /* couleur */
+  var choixCoul = r.couleur;
+  var fC = el("div", "field");
+  fC.appendChild(el("label", null, "Couleur"));
+  var wC = el("div", "swatches");
+  var listeC = COULEURS.slice();
+  if(listeC.indexOf(r.couleur) < 0) listeC.unshift(r.couleur);
+  listeC.forEach(function(c, i){
+    var b = el("button", "sw");
+    b.type = "button"; b.style.background = c;
+    b.setAttribute("aria-pressed", c === r.couleur ? "true" : "false");
+    b.setAttribute("aria-label", "Couleur " + (i + 1));
+    b.addEventListener("click", function(){
+      choixCoul = c;
+      wC.querySelectorAll(".sw").forEach(function(x){ x.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+    });
+    wC.appendChild(b);
+  });
+  fC.appendChild(wC); f.body.appendChild(fC);
+
+  /* groupe */
+  var fG = el("div", "field");
+  fG.appendChild(el("label", null, "Groupe"));
+  var sG = document.createElement("select");
+  sG.className = "input";
+  var gs = GROUPES.slice();
+  if(gs.indexOf(r.groupe) < 0) gs.push(r.groupe);
+  gs.forEach(function(g){
+    var o = document.createElement("option");
+    o.value = g; o.textContent = g;
+    if(g === r.groupe) o.selected = true;
+    sG.appendChild(o);
+  });
+  fG.appendChild(sG);
+  var aideG = el("p", "tiny muted", "");
+  aideG.style.margin = "6px 0 0";
+  fG.appendChild(aideG);
+  function majAideG(){
+    aideG.textContent = sG.value === GROUPE_EPARGNE
+      ? "Dans ce groupe, MonDjai vous encourage au lieu de vous alerter : y mettre de l'argent est une réussite."
+      : "Le groupe décide de la place de la rubrique sur le tableau de bord et de son sous-total.";
+  }
+  sG.addEventListener("change", majAideG);
+  majAideG();
+  f.body.appendChild(fG);
+
+  var err = el("p", "tiny", "");
+  err.style.color = "var(--red)"; err.style.margin = "0";
+  f.body.appendChild(err);
+
+  /* barre */
+  var bar = el("div", "sticky"), inn = el("div", "sticky-in");
+  var bOk = el("button", "btn btn-primary", "Enregistrer");
+  bOk.type = "button";
+  bOk.addEventListener("click", function(){
+    var nom = iNom.value.trim();
+    if(!nom){ err.textContent = "Donnez un nom à la rubrique."; iNom.focus(); return; }
+    var doublon = S.rubriques.some(function(x){
+      return x.id !== r.id && x.nom.toLowerCase() === nom.toLowerCase();
+    });
+    if(doublon){ err.textContent = "Une autre rubrique porte déjà ce nom."; return; }
+    r.nom = nom; r.icone = choixEmoji; r.couleur = choixCoul; r.groupe = sG.value;
+    sauver();
+    fermerFeuille(false);
+    if(apres) apres();
+    toast("Rubrique mise à jour ✓");
+  });
+  inn.appendChild(bOk);
+  bar.appendChild(inn);
+  f.sh.appendChild(bar);
+}
+
+/* ==============================================================
+   SPRINT 4 — ÉCRAN RÉGLAGES (F8)
+   Tout ce qui n'est pas le geste quotidien vit ici.
+   ============================================================== */
+function ligneReglage(titre, sous, onClic){
+  var b = el("button", "regl");
+  b.type = "button";
+  var t = el("div");
+  t.style.flex = "1"; t.style.minWidth = "0";
+  t.appendChild(el("div", "regl-nom", titre));
+  if(sous) t.appendChild(el("div", "regl-sous", sous));
+  b.appendChild(t);
+  b.appendChild(el("span", "chev", "›"));
+  b.addEventListener("click", onClic);
+  return b;
+}
+
+function vueReglages(ec, ba){
+  ec.appendChild(boutonRetour("Tableau de bord", "dashboard"));
+  ec.appendChild(el("h1", null, "Réglages"));
+  ec.appendChild(el("p", "sub", "Tout se règle ici. Le tableau de bord, lui, reste léger pour le quotidien."));
+
+  /* --- ce cycle --- */
+  ec.appendChild(el("h2", null, "Ce cycle"));
+  ec.appendChild(ligneReglage("Revenus et jour de paie",
+    "Total " + fmtF(totalRevenus()) + " · reçu " + libelleJour(),
+    function(){ ouvrirVue("revenus", "reglages"); }));
+  ec.appendChild(ligneReglage("Répartition en enveloppes",
+    "Réparti " + fmtF(totalReparti()) + " sur " + fmtF(totalRevenus()),
+    function(){ ouvrirVue("repartition", "reglages"); }));
+
+  /* --- rubriques et groupes --- */
+  ec.appendChild(el("h2", null, "Rubriques et groupes"));
+  var nAct = actives().length;
+  ec.appendChild(ligneReglage("Mes rubriques",
+    nAct + (nAct > 1 ? " rubriques actives" : " rubrique active") + " · renommer, icône, couleur, groupe",
+    function(){ ouvrirVue("rubriques", "reglages"); }));
+
+  /* --- code d'accès --- */
+  ec.appendChild(el("h2", null, "Code d'accès"));
+  var cc = el("div", "card");
+  var etatL = el("div");
+  etatL.style.display = "flex"; etatL.style.justifyContent = "space-between"; etatL.style.alignItems = "baseline";
+  etatL.appendChild(el("span", null, "Code à 4 chiffres"));
+  etatL.appendChild(el("span", S.pin ? "c-vert" : "muted", S.pin ? "Activé" : "Désactivé"));
+  cc.appendChild(etatL);
+  var rowC = el("div", "row-btns");
+  rowC.style.marginTop = "12px";
+  var bDef = el("button", "btn" + (S.pin ? "" : " btn-primary"), S.pin ? "Modifier le code" : "Activer le code");
+  bDef.type = "button";
+  bDef.addEventListener("click", ouvrirDefinirCode);
+  rowC.appendChild(bDef);
+  if(S.pin){
+    var bOff = el("button", "btn btn-ghost", "Désactiver");
+    bOff.type = "button";
+    bOff.addEventListener("click", desactiverCode);
+    rowC.appendChild(bOff);
+  }
+  cc.appendChild(rowC);
+  ec.appendChild(cc);
+  var noteC = el("p", "tiny muted",
+    "À dire franchement : ce code décourage les curieux qui prennent votre téléphone, mais il ne chiffre pas vos données. "
+    + "Quelqu'un qui s'y connaît pourrait les lire autrement. Et s'il est oublié, il n'y a pas de porte de secours : "
+    + "il faut effacer les données de l'appareil et repartir de la dernière sauvegarde.");
+  noteC.style.margin = "8px 0 0";
+  ec.appendChild(noteC);
+
+  /* --- sauvegarde --- */
+  ec.appendChild(el("h2", null, "Sauvegarde et restauration"));
+  ec.appendChild(blocSauvegarde());
+  var noteS = el("p", "tiny muted", (S.derniereSauvegarde
+    ? "Dernière sauvegarde : " + dateComplete(S.derniereSauvegarde) + ". "
+    : "Aucune sauvegarde pour l'instant. ")
+    + "Le fichier reste sur votre téléphone : gardez-en une copie quelque part de sûr.");
+  noteS.style.margin = "10px 0 0";
+  ec.appendChild(noteS);
+
+  /* --- historique et à propos --- */
+  ec.appendChild(el("h2", null, "Plus loin"));
+  var n = S.cycles.length;
+  ec.appendChild(ligneReglage("Historique des cycles",
+    n ? (n + (n > 1 ? " cycles archivés" : " cycle archivé")) : "Aucun cycle archivé pour l'instant",
+    function(){ ouvrirVue("historique", "reglages"); }));
+  ec.appendChild(ligneReglage("À propos de MonDjai",
+    "Ce que l'application fait, et ce qu'elle ne fait pas",
+    function(){ ouvrirVue("apropos", "reglages"); }));
+
+  /* --- repartir de zéro --- */
+  ec.appendChild(el("h2", null, "Repartir de zéro"));
+  var bRaz = el("button", "btn btn-danger", "Réinitialiser MonDjai");
+  bRaz.type = "button";
+  bRaz.addEventListener("click", function(){
+    if(confirm("Effacer toutes vos données MonDjai sur cet appareil — cycle en cours et cycles archivés ?\n\nC'est définitif. Pensez à sauvegarder d'abord si vous voulez pouvoir revenir en arrière.")){
+      try{ localStorage.removeItem(CLE); }catch(e){}
+      S = neuf();
+      deverrouille = true;
+      rubOuverte = null; cycleOuvert = null; brouillonCycle = null; retours = {};
+      vue = "revenus";
+      sauver();
+      render();
+    }
+  });
+  ec.appendChild(bRaz);
+  var noteR = el("p", "tiny muted", "Vos données restent sur cet appareil, et nulle part ailleurs.");
+  noteR.style.margin = "12px 0 0";
+  ec.appendChild(noteR);
+}
+
+/* ==============================================================
+   SPRINT 4 — ÉCRAN À PROPOS
+   ============================================================== */
+function vueApropos(ec, ba){
+  ec.appendChild(boutonRetour("Réglages", "reglages"));
+  ec.appendChild(el("h1", null, "À propos"));
+
+  var mission = el("div", "card");
+  mission.appendChild(el("p", "mission",
+    "MonDjai met sur le téléphone un geste que vous faites déjà : partager le salaire en enveloppes, le jour de la paie."));
+  mission.appendChild(el("p", "small muted",
+    "Trente secondes par jour, pas plus. L'application informe et éclaire ; elle ne juge jamais et ne bloque jamais."));
+  ec.appendChild(mission);
+
+  ec.appendChild(el("h2", null, "Ce que MonDjai fait"));
+  var c1 = el("div", "card");
+  [
+    "Cale votre budget sur votre jour de paie, pas sur le 1er du mois.",
+    "Partage vos revenus en enveloppes, y compris les activités secondaires.",
+    "Enregistre une dépense en trois taps, sans photo ni formulaire.",
+    "Montre où vous en êtes, enveloppe par enveloppe et groupe par groupe.",
+    "Lisse les dépenses qui ne tombent pas tous les mois.",
+    "Archive chaque cycle pour que vous puissiez vous relire.",
+    "Fonctionne entièrement hors ligne, une fois installée."
+  ].forEach(function(t){
+    var l = el("div", "ap");
+    l.appendChild(el("span", null, "•"));
+    l.appendChild(el("span", null, t));
+    c1.appendChild(l);
+  });
+  ec.appendChild(c1);
+
+  ec.appendChild(el("h2", null, "Ce que MonDjai ne fait pas"));
+  var c2 = el("div", "card");
+  [
+    "Ne se connecte à aucune banque et ne lit aucun SMS.",
+    "N'envoie rien sur Internet : aucun compte, aucun nuage, aucune publicité.",
+    "Ne vous bloque jamais et ne vous fait pas la morale.",
+    "Ne suit pas vos comptes : elle suit votre budget.",
+    "Ne coûte rien, et ne coûtera rien."
+  ].forEach(function(t){
+    var l = el("div", "ap");
+    l.appendChild(el("span", null, "•"));
+    l.appendChild(el("span", null, t));
+    c2.appendChild(l);
+  });
+  ec.appendChild(c2);
+
+  ec.appendChild(el("h2", null, "Vos données"));
+  var c3 = el("div", "card");
+  c3.appendChild(el("p", "small",
+    "Tout ce que vous saisissez reste dans la mémoire de ce téléphone. Vos données ne quittent jamais l'appareil : aucun serveur, aucun compte, personne d'autre que vous ne les voit."));
+  c3.appendChild(el("p", "small muted",
+    "Revers de la médaille : si vous effacez les données du navigateur ou changez de téléphone, elles s'en vont avec. Le fichier de sauvegarde est votre seule copie — prenez l'habitude de le faire à chaque paie."));
+  ec.appendChild(c3);
+
+  var v = el("p", "tiny muted", "MonDjai — version 4 (Sprints 1 à 4) · FCFA · français · hors ligne.");
+  v.style.margin = "16px 0 0";
+  ec.appendChild(v);
+  var d = el("p", "tiny muted", "« Lève-toi et avance. »");
+  d.style.margin = "4px 0 0";
+  ec.appendChild(d);
 }
 
 /* ---------- démarrage ----------
