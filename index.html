@@ -34,6 +34,8 @@
   --red-soft:rgba(229,72,77,.13);
   --r:14px;
   --pad:16px;
+  --clavier:0px;
+  --navh:0px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -65,7 +67,8 @@ header.top{
   font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
   font-weight:700;margin-left:auto
 }
-main{padding-top:20px;padding-bottom:200px}
+main{padding-top:20px;padding-bottom:calc(120px + var(--navh))}
+body.avec-onglets main{padding-bottom:calc(120px + var(--navh) + 78px)}
 
 h1{font-size:24px;line-height:1.2;letter-spacing:-.02em;margin:0 0 6px;font-weight:800}
 .sub{color:var(--muted);font-size:14px;margin:0 0 22px}
@@ -142,7 +145,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
   width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;
   font-size:18px;background:var(--surface-2)
 }
-.rub .nom{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rub .nom{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:normal;word-break:break-word}
 .check{
   width:22px;height:22px;flex:none;border-radius:7px;border:1.5px solid var(--line);
   display:grid;place-items:center;font-size:13px;color:transparent
@@ -169,7 +172,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
   display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
   border-left:3px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:8px
 }
-.repart .nom{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.repart .nom{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:normal;word-break:break-word}
 .repart .pct{display:block;font-weight:500;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .reste-ici{
   background:transparent;border:1px solid var(--line);border-radius:9px;color:var(--muted);
@@ -189,10 +192,11 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 
 /* --- barre collante --- */
 .sticky{
-  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  position:fixed;left:0;right:0;bottom:var(--clavier);z-index:30;
   background:rgba(15,18,24,.94);backdrop-filter:blur(10px);
   border-top:1px solid var(--line);
-  padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom))
+  padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom));
+  transition:bottom .1s ease
 }
 .sticky-in{max-width:560px;margin:0 auto}
 .reste-line{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
@@ -214,7 +218,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 .tb-ligne{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
 .tb-ligne:last-child{border-bottom:0}
 .pastille{width:10px;height:10px;border-radius:99px;flex:none}
-.tb-ligne .nom{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-ligne .nom{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:normal;word-break:break-word}
 .tb-mont{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
 .tb-mont small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
 .vide-msg{color:var(--muted);font-size:14px;padding:14px 0}
@@ -229,7 +233,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 .env:active{transform:translateY(1px)}
 .env.alerte{border-color:rgba(229,72,77,.4)}
 .env-haut{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.env-haut .nom{flex:1;min-width:0;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.env-haut .nom{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:normal;word-break:break-word}
 .env-mont{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;flex:none}
 .env-mont small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
 .env-bas{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:7px;font-size:12px;font-variant-numeric:tabular-nums}
@@ -242,13 +246,35 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 
 /* --- bouton flottant « + » --- */
 .fab{
-  position:fixed;z-index:40;right:20px;bottom:calc(22px + env(safe-area-inset-bottom));
+  position:fixed;z-index:45;right:20px;bottom:calc(22px + env(safe-area-inset-bottom));
   width:62px;height:62px;border-radius:99px;border:0;background:var(--gold);color:#141414;
   font-size:32px;font-weight:800;line-height:1;display:grid;place-items:center;
   box-shadow:0 8px 24px rgba(0,0,0,.45)
 }
 .fab:active{transform:translateY(1px)}
 @media (min-width:620px){ .fab{right:calc(50% - 280px + 8px)} }
+body.avec-onglets .fab{bottom:calc(78px + var(--navh) + env(safe-area-inset-bottom))}
+
+/* --- Sprint 5A : menu de navigation fixe en bas --- */
+.nav-tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  display:none;
+  background:rgba(15,18,24,.96);backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)
+}
+body.avec-onglets .nav-tabs{display:block}
+.nav-tabs-in{
+  max-width:560px;margin:0 auto;display:flex;align-items:stretch
+}
+.nav-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:transparent;border:0;color:var(--muted);padding:9px 2px 8px;min-width:0
+}
+.nav-tab .nav-ic{font-size:21px;line-height:1}
+.nav-tab .nav-lab{font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.nav-tab[aria-current="true"]{color:var(--gold)}
+.nav-tab:active{opacity:.7}
 
 /* --- feuille plein écran (saisie de dépense) --- */
 .sheet{position:fixed;inset:0;z-index:60;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -301,7 +327,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
   display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r);padding:10px 12px;margin-bottom:18px;width:100%;text-align:left
 }
-.rub-choisie .nom{flex:1;min-width:0;font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rub-choisie .nom{flex:1;min-width:0;font-weight:700;font-size:15px;white-space:normal;word-break:break-word}
 .rub-choisie .chg{font-size:12px;color:var(--gold);font-weight:700;flex:none}
 
 /* --- liste des dépenses --- */
@@ -312,7 +338,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
   padding:12px 0;text-align:left
 }
 .d-txt{flex:1;min-width:0}
-.d-lib{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.d-lib{font-weight:600;font-size:15px;white-space:normal;word-break:break-word}
 .d-date{font-size:12px;color:var(--muted)}
 .d-mont{font-weight:700;font-variant-numeric:tabular-nums;flex:none}
 
@@ -323,6 +349,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
   padding:11px 18px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.45);
   transition:opacity .25s ease
 }
+body.avec-onglets .toast{bottom:calc(150px + var(--navh) + env(safe-area-inset-bottom))}
 
 /* --- Sprint 3 : regroupement par groupe --- */
 .grp{margin:20px 0 9px}
@@ -359,7 +386,7 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 .ro{padding:11px 0;border-bottom:1px solid var(--line)}
 .ro:last-child{border-bottom:0}
 .ro-h{display:flex;align-items:center;gap:10px}
-.ro-h .nom{flex:1;min-width:0;font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ro-h .nom{flex:1;min-width:0;font-weight:600;font-size:14.5px;white-space:normal;word-break:break-word}
 .ro-m{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:14.5px;flex:none}
 .ro-m small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
 .ro-b{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:6px;font-size:12px;font-variant-numeric:tabular-nums}
@@ -430,6 +457,9 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 .ap span:first-child{flex:none}
 .mission{font-size:17px;font-weight:700;line-height:1.35;margin:0 0 6px}
 
+/* --- lien texte simple --- */
+.lien{background:transparent;border:0;color:var(--gold);font-weight:700;font-size:13px;padding:2px 0}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -444,11 +474,12 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
 
 <main class="app" id="ecran"></main>
 <div id="barre"></div>
+<nav class="nav-tabs" id="onglets" role="navigation" aria-label="Navigation principale"></nav>
 
 <script>
 "use strict";
 /* ==============================================================
-   MonDjai — Sprint 4
+   MonDjai — Sprint 5A
    (Sprint 1 : jour de paie, revenus, rubriques, répartition)
    (Sprint 2 : saisie de dépense en 3 taps, tableau de bord à
     jauges, détail des dépenses par rubrique)
@@ -456,6 +487,10 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
     restauration JSON, affichage par groupes)
    (Sprint 4 : code d'accès, écran Réglages, assistant de
     lissage, épargne valorisée, écran À propos)
+   (Sprint 5A : menu de navigation fixe en bas (Accueil ·
+    Enveloppes · Journal · Épargne · Réglages), accueil allégé,
+    correctifs clavier/défilement, textes qui ne sont plus
+    tronqués, bouton retour Android réparé sur tout l'écran)
    Tout est local : aucun appel réseau, aucune bibliothèque.
    ============================================================== */
 
@@ -519,6 +554,19 @@ var PERIODICITES = [
 
 var CLE = "mondjai.v2";
 var NBSP = "\u00A0";
+
+/* Sprint 5A — menu de navigation fixe en bas.
+   Uniquement les 5 écrans principaux ; les écrans secondaires
+   (détail d'une enveloppe, historique, à propos, éditions…)
+   gardent le bouton « ‹ retour » et masquent ce menu. */
+var ONGLETS = [
+  {v:"dashboard",  ic:"🏠", lab:"Accueil"},
+  {v:"enveloppes", ic:"📋", lab:"Enveloppes"},
+  {v:"journal",    ic:"📒", lab:"Journal"},
+  {v:"epargne",    ic:"💰", lab:"Épargne"},
+  {v:"reglages",   ic:"⚙️", lab:"Réglages"}
+];
+function estOnglet(v){ return ONGLETS.some(function(t){ return t.v === v; }); }
 
 /* ---------- utilitaires ---------- */
 function uid(){ return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
@@ -1097,7 +1145,10 @@ function champMontant(valeur, onChange){
   i.className = "money" + (valeur ? "" : " vide");
   i.value = valeur ? fmt(valeur) : "0";
   i.setAttribute("aria-label", "Montant en francs CFA");
-  i.addEventListener("focus", function(){ if(chiffres(i.value) === 0) i.value = ""; });
+  i.addEventListener("focus", function(){
+    if(chiffres(i.value) === 0) i.value = "";
+    setTimeout(function(){ try{ i.scrollIntoView({block:"center", behavior:"smooth"}); }catch(e){} }, 250);
+  });
   i.addEventListener("input", function(){
     var v = chiffres(i.value);
     i.value = v ? fmt(v) : "";
@@ -1124,13 +1175,15 @@ function toast(txt){
 function render(){
   var ec = document.getElementById("ecran");
   var ba = document.getElementById("barre");
-  ec.innerHTML = ""; ba.innerHTML = "";
+  var og = document.getElementById("onglets");
+  ec.innerHTML = ""; ba.innerHTML = ""; og.innerHTML = "";
   window.scrollTo(0,0);
   var eb = document.getElementById("eyebrow");
 
   /* Sprint 4 — verrou : aucun montant n'est dessiné tant que le code n'est pas saisi */
   if(S.pin && !deverrouille){
     eb.textContent = "Verrouillé";
+    document.body.classList.remove("avec-onglets");
     vueVerrou(ec, ba);
     return;
   }
@@ -1139,13 +1192,17 @@ function render(){
     eb.textContent = "Étape " + ({revenus:1, rubriques:2, repartition:3}[vue] || 3) + " sur 3";
   }else{
     eb.textContent = ({revenus:"Revenus", rubriques:"Rubriques", repartition:"Répartition",
-                       dashboard:"Tableau de bord", rubrique:"Enveloppe",
+                       dashboard:"Accueil", enveloppes:"Enveloppes", journal:"Journal",
+                       epargne:"Épargne", rubrique:"Enveloppe",
                        nouveauCycle:"Nouveau cycle", historique:"Historique",
-                       cycle:"Cycle archivé", reglages:"Réglages", apropos:"À propos"})[vue] || "Tableau de bord";
+                       cycle:"Cycle archivé", reglages:"Réglages", apropos:"À propos"})[vue] || "Accueil";
   }
   if(vue === "revenus") vueRevenus(ec, ba);
   else if(vue === "rubriques") vueRubriques(ec, ba);
   else if(vue === "repartition") vueRepartition(ec, ba);
+  else if(vue === "enveloppes") vueEnveloppes(ec, ba);
+  else if(vue === "journal") vueJournal(ec, ba);
+  else if(vue === "epargne") vueEpargne(ec, ba);
   else if(vue === "rubrique") vueRubriqueDetail(ec, ba);
   else if(vue === "nouveauCycle") vueNouveauCycle(ec, ba);
   else if(vue === "historique") vueHistorique(ec, ba);
@@ -1153,8 +1210,35 @@ function render(){
   else if(vue === "reglages") vueReglages(ec, ba);
   else if(vue === "apropos") vueApropos(ec, ba);
   else vueDashboard(ec, ba);
+
+  /* Sprint 5A — menu de navigation : uniquement sur les 5 écrans principaux,
+     jamais pendant l'accueil initial ni sur un écran secondaire (qui a son
+     propre bouton « ‹ retour »). */
+  var montrer = S.onboarded && estOnglet(vue);
+  document.body.classList.toggle("avec-onglets", montrer);
+  if(montrer) dessinerOnglets(og);
 }
-function aller(v){ vue = v; sauver(); render(); }
+/* Construit le menu du bas, avec l'onglet actif mis en évidence */
+function dessinerOnglets(og){
+  var in_ = el("div", "nav-tabs-in");
+  ONGLETS.forEach(function(t){
+    var b = el("button", "nav-tab");
+    b.type = "button";
+    b.setAttribute("aria-current", vue === t.v ? "true" : "false");
+    b.setAttribute("aria-label", t.lab);
+    var ic = el("span", "nav-ic", t.ic);
+    ic.setAttribute("aria-hidden", "true");
+    b.appendChild(ic);
+    b.appendChild(el("span", "nav-lab", t.lab));
+    b.addEventListener("click", function(){ if(vue !== t.v) aller(t.v); });
+    in_.appendChild(b);
+  });
+  og.appendChild(in_);
+}
+function aller(v){
+  if(v !== vue){ try{ history.pushState({mdVue: v}, ""); }catch(e){} }
+  vue = v; sauver(); render();
+}
 /* Ouvrir un écran en se souvenant d'où l'on vient (bouton retour juste) */
 function ouvrirVue(v, depuis){ retours[v] = depuis || "dashboard"; aller(v); }
 function retourDe(v){ return retours[v] || "dashboard"; }
@@ -1166,7 +1250,7 @@ function boutonRetour(texte, cible){
   b.addEventListener("click", function(){ aller(cible); });
   return b;
 }
-function ouvrirRubrique(id){ rubOuverte = id; aller("rubrique"); }
+function ouvrirRubrique(id, depuis){ retours["rubrique"] = depuis || "enveloppes"; rubOuverte = id; aller("rubrique"); }
 function ouvrirCycle(id){ cycleOuvert = id; aller("cycle"); }
 
 /* ==============================================================
@@ -1306,7 +1390,9 @@ function vueRevenus(ec, ba){
    ÉCRAN 2 — Rubriques
    ============================================================== */
 function vueRubriques(ec, ba){
-  if(S.onboarded) ec.appendChild(boutonRetour(retourDe("rubriques") === "reglages" ? "Réglages" : "Tableau de bord", retourDe("rubriques")));
+  if(S.onboarded) ec.appendChild(boutonRetour(
+    retourDe("rubriques") === "reglages" ? "Réglages" : retourDe("rubriques") === "epargne" ? "Épargne" : "Accueil",
+    retourDe("rubriques")));
   ec.appendChild(el("h1", null, "Vos rubriques"));
   ec.appendChild(el("p", "sub", S.onboarded
     ? "Cochez ce que vous utilisez. Le crayon ✎ permet de renommer une rubrique, de changer son icône, sa couleur et son groupe."
@@ -1630,8 +1716,12 @@ function fermerFeuille(viaRetour){
   document.body.style.overflow = "";
   if(!viaRetour){ try{ history.back(); }catch(e){} }
 }
-window.addEventListener("popstate", function(){
-  if(feuille) fermerFeuille(true);
+/* Sprint 5A — bouton retour physique (Android) : ferme la feuille de
+   saisie si elle est ouverte, sinon revient à l'écran précédent. */
+window.addEventListener("popstate", function(e){
+  if(feuille){ fermerFeuille(true); return; }
+  var v = (e.state && e.state.mdVue) || (S.onboarded ? "dashboard" : "revenus");
+  if(v !== vue){ vue = v; render(); }
 });
 document.addEventListener("keydown", function(e){
   if(e.key === "Escape" && feuille) fermerFeuille(false);
@@ -1734,6 +1824,9 @@ function ouvrirDepense(opts){
     im.value = etat.montant ? fmt(etat.montant) : "";
     im.placeholder = "0";
     im.setAttribute("aria-label", "Montant de la dépense en francs CFA");
+    im.addEventListener("focus", function(){
+      setTimeout(function(){ try{ im.scrollIntoView({block:"center", behavior:"smooth"}); }catch(e){} }, 250);
+    });
     im.addEventListener("input", function(){
       var v = chiffres(im.value);
       im.value = v ? fmt(v) : "";
@@ -1885,7 +1978,9 @@ function supprimerDepense(id){
 }
 
 /* ==============================================================
-   ÉCRAN 4 — Tableau de bord (F5)
+   ÉCRAN 4 — Accueil (F5)
+   Sprint 5A : allégé au strict essentiel. Le détail des enveloppes,
+   le journal complet et l'épargne ont désormais leur propre onglet.
    ============================================================== */
 function vueDashboard(ec, ba){
   var tot = totalRevenus(), rep = totalReparti(), rst = tot - rep;
@@ -1893,7 +1988,7 @@ function vueDashboard(ec, ba){
   var jours = joursAvantPaie();
   var paie = prochainePaie();
 
-  ec.appendChild(el("h1", null, "Tableau de bord"));
+  ec.appendChild(el("h1", null, "Bonjour 👋"));
   ec.appendChild(el("p", "sub", "Cycle en cours depuis le " + dateComplete(S.cycleDebut) + "."));
 
   /* --- proposition de nouveau cycle au jour de paie (F1) --- */
@@ -1981,54 +2076,19 @@ function vueDashboard(ec, ba){
     ec.appendChild(el("div", "banner", "Déficit à combler : " + fmtF(-rst)));
   }
 
-  /* --- enveloppes regroupées par groupe, une jauge par rubrique --- */
-  ec.appendChild(el("h2", null, "Vos enveloppes"));
-  var act = actives();
-  if(act.length === 0){
-    var c0 = el("div", "card");
-    c0.appendChild(el("div", "vide-msg", "Aucune rubrique active. Ouvrez « Rubriques » pour en choisir."));
-    ec.appendChild(c0);
-  }else{
-    /* les groupes vides ne s'affichent pas */
-    groupesPresents(act).forEach(function(g){
-      var membres = membresGroupe(act, g);
-      if(!membres.length) return;
-      var affG = 0, depG = 0;
-      membres.forEach(function(r){
-        affG += Number(r.montant) || 0;
-        depG += depenseRub(r.id);
-      });
-      ec.appendChild(enteteGroupe(g, affG, depG, g === GROUPE_EPARGNE));
-      membres.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); })
-        .forEach(function(r){ ec.appendChild(carteEnveloppe(r)); });
-    });
+  /* --- dernières dépenses (aperçu seulement — le journal complet a son onglet) --- */
+  var recentes = triDepenses(S.depenses).slice(0, 3);
+  var entete3 = el("div", "grp-t");
+  entete3.appendChild(el("h2", null, "Dernières dépenses"));
+  if(S.depenses.length > 3){
+    var bVoir = el("button", "lien", "Tout voir");
+    bVoir.type = "button";
+    bVoir.addEventListener("click", function(){ aller("journal"); });
+    entete3.appendChild(bVoir);
   }
-
-  /* --- enveloppes désactivées qui portent des dépenses --- */
-  var orphelines = S.rubriques.filter(function(r){ return !r.active && depenseRub(r.id) > 0; });
-  if(orphelines.length){
-    ec.appendChild(el("h2", null, "Rubriques désactivées"));
-    orphelines.forEach(function(r){ ec.appendChild(carteEnveloppe(r)); });
-  }
-
-  /* --- non affecté --- */
-  var card = el("div", "card");
-  var l2 = el("div", "tb-ligne");
-  var p2b = el("span", "pastille");
-  p2b.style.background = "var(--muted)";
-  l2.appendChild(p2b);
-  l2.appendChild(el("span", "ico", "🗂️"));
-  l2.appendChild(el("span", "nom", "Non affecté"));
-  var m2 = el("div", "tb-mont", fmtF(Math.max(0, rst)));
-  m2.appendChild(el("small", null, "reste disponible"));
-  l2.appendChild(m2);
-  card.appendChild(l2);
-  ec.appendChild(card);
-
-  /* --- dernières dépenses --- */
-  var recentes = triDepenses(S.depenses).slice(0, 5);
+  entete3.style.margin = "26px 0 10px";
+  ec.appendChild(entete3);
   if(recentes.length){
-    ec.appendChild(el("h2", null, "Dernières dépenses"));
     var cr = el("div", "card");
     recentes.forEach(function(d){ cr.appendChild(ligneDepense(d, true)); });
     ec.appendChild(cr);
@@ -2038,41 +2098,160 @@ function vueDashboard(ec, ba){
     ec.appendChild(vide);
   }
 
-  /* --- cycle --- */
-  ec.appendChild(el("h2", null, "Cycle"));
-  var bCyc = el("button", "btn", "J'ai reçu mon salaire");
+  /* --- cycle : bouton discret, sans le pavé explicatif du quotidien --- */
+  var bCyc = el("button", "btn btn-ghost", "J'ai reçu mon salaire");
   bCyc.type = "button";
+  bCyc.style.marginTop = "18px";
   bCyc.addEventListener("click", ouvrirNouveauCycle);
   ec.appendChild(bCyc);
-  var aideCyc = el("p", "tiny muted",
-    "Clôture ce cycle et en démarre un nouveau, en avance ou en retard, comme vous voulez. Prochaine paie prévue " +
-    (paie ? "le " + paie.getDate() + " " + MOIS[paie.getMonth()] : libelleJour()) + ".");
-  aideCyc.style.margin = "8px 0 0";
-  ec.appendChild(aideCyc);
-
-  /* --- réglages et historique (Sprint 4 : le tableau de bord s'allège) --- */
-  ec.appendChild(el("h2", null, "Aller plus loin"));
-  var rgl = el("div", "row-btns");
-  var bR = el("button", "btn", "Réglages"); bR.type = "button";
-  bR.addEventListener("click", function(){ ouvrirVue("reglages", "dashboard"); });
-  var n = S.cycles.length;
-  var bH = el("button", "btn", n ? "Historique (" + n + ")" : "Historique"); bH.type = "button";
-  bH.addEventListener("click", function(){ ouvrirVue("historique", "dashboard"); });
-  rgl.appendChild(bR); rgl.appendChild(bH);
-  ec.appendChild(rgl);
-
-  var note = el("p", "tiny muted",
-    "Revenus, rubriques, code d'accès et sauvegarde sont dans les Réglages. Vos données restent sur cet appareil.");
-  note.style.margin = "12px 0 0";
-  ec.appendChild(note);
 
   /* --- bouton « + » flottant (tap 1) --- */
   boutonPlus(ba, null);
 }
 
+/* ==============================================================
+   Sprint 5A — ÉCRAN « Enveloppes »
+   Le détail complet, groupe par groupe, qui occupait tout l'accueil.
+   L'épargne (groupe Épargne & Investissement) a son propre onglet,
+   elle n'apparaît donc pas ici pour éviter le doublon.
+   ============================================================== */
+function vueEnveloppes(ec, ba){
+  var tot = totalRevenus(), rep = totalReparti(), rst = tot - rep;
+
+  ec.appendChild(el("h1", null, "Vos enveloppes"));
+  ec.appendChild(el("p", "sub", "Ce qui est affecté et ce qui a déjà été dépensé, groupe par groupe."));
+
+  var act = actives().filter(function(r){ return !estEpargne(r); });
+  if(act.length === 0){
+    var c0 = el("div", "card");
+    c0.appendChild(el("div", "vide-msg", "Aucune rubrique active. Ouvrez « Réglages › Mes rubriques » pour en choisir."));
+    ec.appendChild(c0);
+  }else{
+    groupesPresents(act).forEach(function(g){
+      var membres = membresGroupe(act, g);
+      if(!membres.length) return;
+      var affG = 0, depG = 0;
+      membres.forEach(function(r){
+        affG += Number(r.montant) || 0;
+        depG += depenseRub(r.id);
+      });
+      ec.appendChild(enteteGroupe(g, affG, depG, false));
+      membres.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); })
+        .forEach(function(r){ ec.appendChild(carteEnveloppe(r, "enveloppes")); });
+    });
+  }
+
+  /* --- enveloppes désactivées (hors épargne) qui portent encore des dépenses --- */
+  var orphelines = S.rubriques.filter(function(r){ return !r.active && !estEpargne(r) && depenseRub(r.id) > 0; });
+  if(orphelines.length){
+    ec.appendChild(el("h2", null, "Rubriques désactivées"));
+    orphelines.forEach(function(r){ ec.appendChild(carteEnveloppe(r, "enveloppes")); });
+  }
+
+  /* --- non affecté --- */
+  ec.appendChild(el("h2", null, "Non affecté"));
+  var card = el("div", "card");
+  var l2 = el("div", "tb-ligne");
+  var p2b = el("span", "pastille");
+  p2b.style.background = "var(--muted)";
+  l2.appendChild(p2b);
+  l2.appendChild(el("span", "ico", "🗂️"));
+  l2.appendChild(el("span", "nom", "Reste à répartir"));
+  var m2 = el("div", "tb-mont", fmtF(Math.max(0, rst)));
+  m2.appendChild(el("small", null, "sur " + fmtF(tot)));
+  l2.appendChild(m2);
+  card.appendChild(l2);
+  ec.appendChild(card);
+
+  var bRep = el("button", "btn", "Modifier la répartition");
+  bRep.type = "button";
+  bRep.style.marginTop = "10px";
+  bRep.addEventListener("click", function(){ ouvrirVue("repartition", "enveloppes"); });
+  ec.appendChild(bRep);
+
+  boutonPlus(ba, null);
+}
+
+/* ==============================================================
+   Sprint 5A — ÉCRAN « Journal »
+   Historique chronologique complet des dépenses du cycle en cours.
+   ============================================================== */
+function vueJournal(ec, ba){
+  var liste = triDepenses(S.depenses);
+  ec.appendChild(el("h1", null, "Journal"));
+  ec.appendChild(el("p", "sub", liste.length
+    ? fmtF(totalDepense()) + " dépensés sur ce cycle, " + liste.length + (liste.length > 1 ? " lignes." : " ligne.")
+    : "Aucune dépense saisie sur ce cycle pour l'instant."));
+
+  if(!liste.length){
+    var c0 = el("div", "card");
+    c0.appendChild(el("div", "vide-msg", "Appuyez sur le bouton « + » pour enregistrer votre première dépense."));
+    ec.appendChild(c0);
+  }else{
+    var card = el("div", "card");
+    liste.forEach(function(d){ card.appendChild(ligneDepense(d, true)); });
+    ec.appendChild(card);
+  }
+
+  boutonPlus(ba, null);
+}
+
+/* ==============================================================
+   Sprint 5A — ÉCRAN « Épargne »
+   Traitement positif isolé (F10) : jamais de rouge, on célèbre.
+   ============================================================== */
+function vueEpargne(ec, ba){
+  var membres = membresGroupe(actives(), GROUPE_EPARGNE);
+  var mis = totalEpargne();
+  var objectif = membres.reduce(function(t,r){ return t + (Number(r.montant)||0); }, 0);
+
+  ec.appendChild(el("h1", null, "💰 Épargne"));
+  ec.appendChild(el("p", "sub", "Ce que vous mettez de côté ne passe jamais au rouge ici."));
+
+  var tete = el("div", "tb-tete");
+  tete.appendChild(el("div", "lab tiny muted", "MIS DE CÔTÉ CE CYCLE-CI"));
+  tete.appendChild(el("div", "big c-vert", fmtF(mis)));
+  if(objectif > 0){
+    var jg = jaugeRub(mis, objectif, true);
+    jg.style.marginTop = "12px";
+    tete.appendChild(jg);
+    var sousT = el("div", "tiny muted", motEpargne(mis, objectif));
+    sousT.style.marginTop = "6px";
+    tete.appendChild(sousT);
+  }
+  ec.appendChild(tete);
+
+  if(!membres.length){
+    var c0 = el("div", "card");
+    c0.appendChild(el("div", "vide-msg",
+      "Aucune rubrique d'épargne active. Activez « Épargne / Tontine », « Fonds d'imprévus » ou une autre dans Réglages › Mes rubriques."));
+    ec.appendChild(c0);
+    var bAct = el("button", "btn", "Choisir mes rubriques");
+    bAct.type = "button";
+    bAct.style.marginTop = "10px";
+    bAct.addEventListener("click", function(){ ouvrirVue("rubriques", "epargne"); });
+    ec.appendChild(bAct);
+  }else{
+    ec.appendChild(el("h2", null, "Vos rubriques d'épargne"));
+    membres.slice().sort(function(a,b){ return (b.montant||0) - (a.montant||0); })
+      .forEach(function(r){ ec.appendChild(carteEnveloppe(r, "epargne")); });
+  }
+
+  /* --- rubriques d'épargne désactivées qui portent encore des versements --- */
+  var orphEp = S.rubriques.filter(function(r){ return !r.active && estEpargne(r) && depenseRub(r.id) > 0; });
+  if(orphEp.length){
+    ec.appendChild(el("h2", null, "Rubriques désactivées"));
+    orphEp.forEach(function(r){ ec.appendChild(carteEnveloppe(r, "epargne")); });
+  }
+
+  boutonPlus(ba, null);
+}
+
 /* --- carte d'une enveloppe avec sa jauge ---
-   Sprint 4 : dans l'épargne, on « met de côté » et rien ne passe au rouge (F10). */
-function carteEnveloppe(r){
+   Sprint 4 : dans l'épargne, on « met de côté » et rien ne passe au rouge (F10).
+   Sprint 5A : « origine » mémorise l'onglet d'où l'on vient, pour un bouton
+   retour juste sur l'écran de détail. */
+function carteEnveloppe(r, origine){
   var ep = estEpargne(r);
   var affecte = Number(r.montant) || 0;
   var d = depenseRub(r.id);
@@ -2118,7 +2297,7 @@ function carteEnveloppe(r){
     b.appendChild(lr);
   }
 
-  b.addEventListener("click", function(){ ouvrirRubrique(r.id); });
+  b.addEventListener("click", function(){ ouvrirRubrique(r.id, origine); });
   return b;
 }
 
@@ -2174,7 +2353,9 @@ function vueRubriqueDetail(ec, ba){
   var etat = etatDe(d, affecte, ep);
   var reste = affecte - d;
 
-  ec.appendChild(boutonRetour("Tableau de bord", "dashboard"));
+  var origine = retourDe("rubrique");
+  var labelOrigine = origine === "epargne" ? "Épargne" : "Enveloppes";
+  ec.appendChild(boutonRetour(labelOrigine, origine));
 
   var t = el("h1", null, r.icone + " " + r.nom);
   ec.appendChild(t);
@@ -2239,7 +2420,7 @@ function vueRubriqueDetail(ec, ba){
   var bRep = el("button", "btn", ep ? "Modifier l'objectif" : "Modifier la répartition");
   bRep.type = "button";
   bRep.style.marginTop = "18px";
-  bRep.addEventListener("click", function(){ ouvrirVue("repartition", "dashboard"); });
+  bRep.addEventListener("click", function(){ ouvrirVue("repartition", origine); });
   ec.appendChild(bRep);
 
   /* « + » pré-réglé sur cette enveloppe : 2 taps */
@@ -2255,7 +2436,7 @@ function vueNouveauCycle(ec, ba){
   if(!brouillonCycle){ ouvrirNouveauCycle(); return; }
   var b = brouillonCycle;
 
-  var bRet = el("button", "btn btn-ghost btn-line", "‹ Tableau de bord");
+  var bRet = el("button", "btn btn-ghost btn-line", "‹ Accueil");
   bRet.type = "button";
   bRet.style.marginBottom = "14px";
   bRet.addEventListener("click", function(){ brouillonCycle = null; aller("dashboard"); });
@@ -2428,7 +2609,7 @@ function vueNouveauCycle(ec, ba){
    ============================================================== */
 function vueHistorique(ec, ba){
   var cible = retourDe("historique");
-  ec.appendChild(boutonRetour(cible === "reglages" ? "Réglages" : "Tableau de bord", cible));
+  ec.appendChild(boutonRetour(cible === "reglages" ? "Réglages" : "Accueil", cible));
 
   ec.appendChild(el("h1", null, "Historique"));
   ec.appendChild(el("p", "sub", "Vos cycles clôturés, du plus récent au plus ancien."));
@@ -3099,9 +3280,8 @@ function ligneReglage(titre, sous, onClic){
 }
 
 function vueReglages(ec, ba){
-  ec.appendChild(boutonRetour("Tableau de bord", "dashboard"));
   ec.appendChild(el("h1", null, "Réglages"));
-  ec.appendChild(el("p", "sub", "Tout se règle ici. Le tableau de bord, lui, reste léger pour le quotidien."));
+  ec.appendChild(el("p", "sub", "Tout se règle ici. L'accueil, lui, reste léger pour le quotidien."));
 
   /* --- ce cycle --- */
   ec.appendChild(el("h2", null, "Ce cycle"));
@@ -3245,12 +3425,27 @@ function vueApropos(ec, ba){
     "Revers de la médaille : si vous effacez les données du navigateur ou changez de téléphone, elles s'en vont avec. Le fichier de sauvegarde est votre seule copie — prenez l'habitude de le faire à chaque paie."));
   ec.appendChild(c3);
 
-  var v = el("p", "tiny muted", "MonDjai — version 4 (Sprints 1 à 4) · FCFA · français · hors ligne.");
+  var v = el("p", "tiny muted", "MonDjai — version 5A (Sprints 1 à 5A) · FCFA · français · hors ligne.");
   v.style.margin = "16px 0 0";
   ec.appendChild(v);
   var d = el("p", "tiny muted", "« Lève-toi et avance. »");
   d.style.margin = "4px 0 0";
   ec.appendChild(d);
+}
+
+/* Sprint 5A — quand le clavier s'ouvre, les barres fixes (validation,
+   navigation) remontent au-dessus de lui au lieu de rester cachées dessous. */
+if(window.visualViewport){
+  (function(){
+    var vv = window.visualViewport;
+    function ajuster(){
+      var decalage = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty("--clavier", decalage + "px");
+    }
+    vv.addEventListener("resize", ajuster);
+    vv.addEventListener("scroll", ajuster);
+    ajuster();
+  })();
 }
 
 /* ---------- démarrage ----------

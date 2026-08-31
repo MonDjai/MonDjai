@@ -1,6 +1,6 @@
 /* ==============================================================
    MonDjai — service worker (mode hors ligne)
-   Sprint 4. Aucun appel réseau n'est fait par l'application :
+   Sprint 5A. Aucun appel réseau n'est fait par l'application :
    ce fichier ne sert qu'à garder les 4 fichiers sur le téléphone
    pour que MonDjai s'ouvre sans connexion, une fois installée.
 
@@ -8,7 +8,7 @@
    le numéro ci-dessous change. C'est ce qui dit au téléphone
    « va rechercher les fichiers, ils ont été mis à jour ».
    ============================================================== */
-var CACHE = "mondjai-v4";
+var CACHE = "mondjai-v5";
 
 var FICHIERS = [
   "./",
