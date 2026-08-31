@@ -117,6 +117,16 @@ h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted
   flex:1;min-width:0;background:transparent;border:0;padding:6px 0;font-size:15px;font-weight:600
 }
 .ligne .lib::placeholder{color:var(--muted);font-weight:500}
+
+/* --- Sprint 5B : date propre à un revenu (jamais celle du salaire) --- */
+.champ-date{
+  display:flex;align-items:center;gap:8px;margin:-4px 0 8px 4px
+}
+.champ-date .input-date{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:9px;
+  padding:6px 8px;font-size:13px;color:var(--text)
+}
+
 .money{
   width:130px;text-align:right;background:var(--surface-2);border:1px solid var(--line);
   border-radius:9px;padding:9px 10px;font-variant-numeric:tabular-nums;font-weight:700;font-size:15px
@@ -491,6 +501,13 @@ body.avec-onglets .toast{bottom:calc(150px + var(--navh) + env(safe-area-inset-b
     Enveloppes · Journal · Épargne · Réglages), accueil allégé,
     correctifs clavier/défilement, textes qui ne sont plus
     tronqués, bouton retour Android réparé sur tout l'écran)
+   (Sprint 5B — logique métier : répartition automatique
+    proportionnelle proposée si les revenus changent lors d'un
+    nouveau cycle ; dépenses prévues (« prévisions ») pour une
+    date future, non comptées avant validation, avec rappel sur
+    l'accueil ; date propre à chaque « autre revenu », distincte
+    de la date du salaire. L'export Excel arrive dans une
+    prochaine livraison.)
    Tout est local : aucun appel réseau, aucune bibliothèque.
    ============================================================== */
 
@@ -667,16 +684,17 @@ var retours = {};         /* Sprint 4 — d'où l'on vient, pour le bouton retou
 
 function neuf(){
   return {
-    version: 5,
+    version: 6,
     onboarded: false,
     jourSalaire: null,
-    revenus: [{id: uid(), libelle: "Salaire net", montant: 0}],
+    revenus: [{id: uid(), libelle: "Salaire net", montant: 0, date: null}],
     rubriques: RUBRIQUES_F3.map(function(r){
       return {id:r.id, nom:r.nom, icone:r.icone, couleur:r.couleur, groupe:r.groupe,
               active:!!r.defaut, montant:0, perso:false,
               periodicite:"mensuel", montantReel:0};
     }),
     depenses: [],
+    previsions: [],        /* Sprint 5B — dépenses prévues, non comptabilisées tant que non validées (F4bis) */
     cycleId: uid(),
     cycleDebut: aujourdhui(),
     cycles: [],
@@ -715,11 +733,22 @@ function normaliser(o){
 
   o.revenus = o.revenus.filter(function(r){ return r && typeof r === "object"; })
     .map(function(r){
-      return {id: r.id || uid(), libelle: String(r.libelle || ""), montant: Number(r.montant) || 0};
+      return {id: r.id || uid(), libelle: String(r.libelle || ""), montant: Number(r.montant) || 0,
+              /* Sprint 5B — date propre à ce revenu (jamais celle du salaire par défaut) */
+              date: (typeof r.date === "string" && r.date) ? r.date : null};
     });
-  if(!o.revenus.length) o.revenus = [{id: uid(), libelle: "Salaire net", montant: 0}];
+  if(!o.revenus.length) o.revenus = [{id: uid(), libelle: "Salaire net", montant: 0, date: null}];
 
   o.depenses = (Array.isArray(o.depenses) ? o.depenses : []).filter(function(d){
+    return d && typeof d.rubrique === "string" && Number(d.montant) > 0;
+  }).map(function(d){
+    return {id: d.id || uid(), rubrique: d.rubrique, montant: Number(d.montant) || 0,
+            libelle: String(d.libelle || ""), date: d.date || aujourdhui(), cree: Number(d.cree) || 0};
+  });
+
+  /* Sprint 5B — dépenses prévues (F4bis) : une date future, jamais comptée
+     dans le solde tant qu'elle n'a pas été validée. */
+  o.previsions = (Array.isArray(o.previsions) ? o.previsions : []).filter(function(d){
     return d && typeof d.rubrique === "string" && Number(d.montant) > 0;
   }).map(function(d){
     return {id: d.id || uid(), rubrique: d.rubrique, montant: Number(d.montant) || 0,
@@ -744,7 +773,8 @@ function normaliser(o){
       fin: c.fin || c.debut || aujourdhui(),
       jourSalaire: (c.jourSalaire === undefined ? o.jourSalaire : c.jourSalaire),
       revenus: (Array.isArray(c.revenus) ? c.revenus : []).map(function(r){
-        return {id: r.id || uid(), libelle: String(r.libelle || ""), montant: Number(r.montant) || 0};
+        return {id: r.id || uid(), libelle: String(r.libelle || ""), montant: Number(r.montant) || 0,
+                date: (typeof r.date === "string" && r.date) ? r.date : null};
       }),
       rubriques: c.rubriques.filter(function(r){ return r && typeof r.id === "string"; })
         .map(function(r){
@@ -769,7 +799,7 @@ function normaliser(o){
   o.epargneFelicitee = (o.epargneFelicitee === null || o.epargneFelicitee === undefined)
     ? null : (Number(o.epargneFelicitee) || 0);
 
-  o.version = 5;
+  o.version = 6;
   return o;
 }
 
@@ -946,7 +976,7 @@ function instantaneCycle(){
     fin: aujourdhui(),
     jourSalaire: S.jourSalaire,
     revenus: S.revenus.map(function(r){
-      return {id: r.id, libelle: r.libelle, montant: Number(r.montant) || 0};
+      return {id: r.id, libelle: r.libelle, montant: Number(r.montant) || 0, date: r.date || null};
     }),
     /* on garde les rubriques qui ont reçu un montant, porté une dépense, ou qui sont actives */
     rubriques: S.rubriques.filter(function(r){
@@ -981,12 +1011,50 @@ function cycDepense(c){
 function ouvrirNouveauCycle(){
   brouillonCycle = {
     revenus: S.revenus.map(function(r){
-      return {id: uid(), libelle: r.libelle, montant: Number(r.montant) || 0};
+      return {id: uid(), libelle: r.libelle, montant: Number(r.montant) || 0, date: null};
     }),
-    montants: {}
+    montants: {},
+    /* Sprint 5B — base de référence pour la répartition automatique
+       proportionnelle si les revenus changent (F2bis) */
+    montantsOrigine: {},
+    totalOrigine: totalRevenus(),
+    derniereDecisionTotal: null
   };
-  actives().forEach(function(r){ brouillonCycle.montants[r.id] = Number(r.montant) || 0; });
+  actives().forEach(function(r){
+    brouillonCycle.montants[r.id] = Number(r.montant) || 0;
+    brouillonCycle.montantsOrigine[r.id] = Number(r.montant) || 0;
+  });
   aller("nouveauCycle");
+}
+/* Sprint 5B — recalcule les montants du brouillon proportionnellement au
+   nouveau total de revenus, à partir des montants du cycle précédent :
+   les charges fixes restent identiques, l'épargne suit le revenu au même
+   pourcentage, le reste (vie courante, social & loisirs…) absorbe l'écart. */
+function recalculerRepartitionAuto(){
+  if(!brouillonCycle) return;
+  var b = brouillonCycle;
+  var oldTotal = b.totalOrigine, newTotal = brTotalRevenus();
+  if(oldTotal <= 0 || newTotal <= 0) return;
+  var act = actives();
+  var fixTotal = 0, epTotal = 0, varTotal = 0;
+  act.forEach(function(r){
+    var m = Number(b.montantsOrigine[r.id]) || 0;
+    if(r.groupe === "Fixes") fixTotal += m;
+    else if(estEpargne(r)) varTotal += 0, epTotal += m;
+    else varTotal += m;
+  });
+  var epNeuf = epTotal * (newTotal / oldTotal);
+  var budgetVar = Math.max(0, newTotal - fixTotal - epNeuf);
+  act.forEach(function(r){
+    var mOld = Number(b.montantsOrigine[r.id]) || 0;
+    if(r.groupe === "Fixes"){
+      b.montants[r.id] = mOld;
+    }else if(estEpargne(r)){
+      b.montants[r.id] = Math.round(mOld * (newTotal / oldTotal));
+    }else{
+      b.montants[r.id] = varTotal > 0 ? Math.round(mOld / varTotal * budgetVar) : 0;
+    }
+  });
 }
 function brTotalRevenus(){
   if(!brouillonCycle) return 0;
@@ -1004,9 +1072,9 @@ function validerNouveauCycle(){
   S.cycleId = uid();
   S.cycleDebut = aujourdhui();
   S.revenus = b.revenus.map(function(r){
-    return {id: uid(), libelle: r.libelle || "Revenu", montant: Number(r.montant) || 0};
+    return {id: uid(), libelle: r.libelle || "Revenu", montant: Number(r.montant) || 0, date: r.date || null};
   });
-  if(!S.revenus.length) S.revenus = [{id: uid(), libelle: "Salaire net", montant: 0}];
+  if(!S.revenus.length) S.revenus = [{id: uid(), libelle: "Salaire net", montant: 0, date: null}];
   S.rubriques.forEach(function(r){
     r.montant = r.active ? (Number(b.montants[r.id]) || 0) : 0;
   });
@@ -1135,6 +1203,513 @@ function blocSauvegarde(){
   b2.addEventListener("click", restaurerDonnees);
   r.appendChild(b1); r.appendChild(b2);
   return r;
+}
+
+/* ==============================================================
+   SPRINT 5B — EXPORT EXCEL (F7bis)
+   Rapport à LIRE (revenus, dépenses, sous-totaux), généré en
+   JavaScript pur — aucune bibliothèque externe, comme le reste de
+   l'application. Bien distinct de la sauvegarde JSON ci-dessus (F7) :
+   ce fichier ne permet pas de restaurer les données, seule la
+   sauvegarde le permet.
+
+   Un fichier .xlsx est un .zip contenant des fichiers XML. On écrit
+   donc ici un petit assembleur ZIP (méthode "stockée", sans
+   compression — pas besoin de DEFLATE pour quelques dizaines de Ko
+   de texte) puis le XML minimal d'un classeur à un seul onglet.
+   ============================================================== */
+
+/* ---------- utilitaires bas niveau ---------- */
+
+/* UTF-8 « à la main » (gère aussi les emoji, encodés sur 2 mots UTF-16) */
+function utf8Octets(str){
+  var out = [];
+  for(var i = 0; i < str.length; i++){
+    var c = str.charCodeAt(i);
+    if(c >= 0xD800 && c <= 0xDBFF && i + 1 < str.length){
+      var c2 = str.charCodeAt(i + 1);
+      if(c2 >= 0xDC00 && c2 <= 0xDFFF){
+        c = ((c - 0xD800) << 10) + (c2 - 0xDC00) + 0x10000;
+        i++;
+      }
+    }
+    if(c < 0x80){
+      out.push(c);
+    }else if(c < 0x800){
+      out.push(0xC0 | (c >> 6), 0x80 | (c & 0x3F));
+    }else if(c < 0x10000){
+      out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
+    }else{
+      out.push(0xF0 | (c >> 18), 0x80 | ((c >> 12) & 0x3F), 0x80 | ((c >> 6) & 0x3F), 0x80 | (c & 0x3F));
+    }
+  }
+  return new Uint8Array(out);
+}
+function xmlEsc(s){
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function colLetra(n){
+  var s = "", k = n + 1;
+  while(k > 0){
+    var m = (k - 1) % 26;
+    s = String.fromCharCode(65 + m) + s;
+    k = Math.floor((k - 1) / 26);
+  }
+  return s;
+}
+function celRef(c0, r){ return colLetra(c0) + r; }
+/* Date ISO (aaaa-mm-jj) -> numéro de série Excel (jours depuis le 30/12/1899) */
+function serieExcel(isoStr){
+  if(!isoStr) return null;
+  var p = String(isoStr).split("-");
+  var an = Number(p[0]), mo = Number(p[1]), jr = Number(p[2]);
+  if(!an || !mo || !jr) return null;
+  var cible = Date.UTC(an, mo - 1, jr);
+  var origine = Date.UTC(1899, 11, 30);
+  return Math.round((cible - origine) / 86400000);
+}
+
+/* ---------- mini-ZIP (méthode "stockée", sans compression) ---------- */
+var CRC_TABLE = (function(){
+  var t = [];
+  for(var n = 0; n < 256; n++){
+    var c = n;
+    for(var k = 0; k < 8; k++){ c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); }
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes){
+  var c = 0xFFFFFFFF;
+  for(var i = 0; i < bytes.length; i++){ c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8); }
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function pushU16(a, n){ a.push(n & 0xFF, (n >>> 8) & 0xFF); }
+function pushU32(a, n){ a.push(n & 0xFF, (n >>> 8) & 0xFF, (n >>> 16) & 0xFF, (n >>> 24) & 0xFF); }
+function dosDateTime(d){
+  var t = ((d.getHours() & 0x1F) << 11) | ((d.getMinutes() & 0x3F) << 5) | (Math.floor(d.getSeconds() / 2) & 0x1F);
+  var da = (((d.getFullYear() - 1980) & 0x7F) << 9) | (((d.getMonth() + 1) & 0xF) << 5) | (d.getDate() & 0x1F);
+  return {time: t & 0xFFFF, date: da & 0xFFFF};
+}
+function concatBytes(tab){
+  var total = 0;
+  tab.forEach(function(a){ total += a.length; });
+  var out = new Uint8Array(total), p = 0;
+  tab.forEach(function(a){ out.set(a, p); p += a.length; });
+  return out;
+}
+/* fichiers : [{nom: "xl/workbook.xml", octets: Uint8Array}, ...] */
+function creerZip(fichiers){
+  var dt = dosDateTime(new Date());
+  var locaux = [], centraux = [], offset = 0;
+
+  fichiers.forEach(function(f){
+    var nomB = utf8Octets(f.nom);
+    var data = f.octets;
+    var crc = crc32(data);
+
+    var lfh = [];
+    pushU32(lfh, 0x04034b50); pushU16(lfh, 20); pushU16(lfh, 0); pushU16(lfh, 0);
+    pushU16(lfh, dt.time); pushU16(lfh, dt.date);
+    pushU32(lfh, crc); pushU32(lfh, data.length); pushU32(lfh, data.length);
+    pushU16(lfh, nomB.length); pushU16(lfh, 0);
+    var localBytes = concatBytes([new Uint8Array(lfh), nomB, data]);
+    locaux.push(localBytes);
+
+    var cdh = [];
+    pushU32(cdh, 0x02014b50); pushU16(cdh, 20); pushU16(cdh, 20); pushU16(cdh, 0); pushU16(cdh, 0);
+    pushU16(cdh, dt.time); pushU16(cdh, dt.date);
+    pushU32(cdh, crc); pushU32(cdh, data.length); pushU32(cdh, data.length);
+    pushU16(cdh, nomB.length); pushU16(cdh, 0); pushU16(cdh, 0); pushU16(cdh, 0); pushU16(cdh, 0);
+    pushU32(cdh, 0); pushU32(cdh, offset);
+    centraux.push(concatBytes([new Uint8Array(cdh), nomB]));
+
+    offset += localBytes.length;
+  });
+
+  var centralBytes = concatBytes(centraux);
+  var eocd = [];
+  pushU32(eocd, 0x06054b50); pushU16(eocd, 0); pushU16(eocd, 0);
+  pushU16(eocd, fichiers.length); pushU16(eocd, fichiers.length);
+  pushU32(eocd, centralBytes.length); pushU32(eocd, offset); pushU16(eocd, 0);
+
+  return concatBytes(locaux.concat([centralBytes, new Uint8Array(eocd)]));
+}
+
+/* ---------- xl/styles.xml ----------
+   Les montants FCFA sont écrits en TEXTE déjà mis en forme (séparateur
+   de milliers par espace, comme fmt()/fmtF() dans le reste de
+   l'application) plutôt qu'en nombres + format Excel : le séparateur
+   d'un format numérique standard ("#,##0") dépend de la langue réglée
+   sur l'appareil qui ouvre le fichier (virgule, point ou espace selon
+   les cas) — en texte, l'espace est garanti, quel que soit le tableur
+   ou la langue de qui l'ouvre. Seules les dates restent de vraies
+   dates Excel : "jj/mm/aaaa" s'affiche pareil partout.
+   numFmtId 166 = date jj/mm/aaaa (seul format numérique du fichier)
+   Styles (index utilisés dans les cellules via l'attribut s) :
+   0 normal · 1 gras · 2 titre · 3 en-tête de tableau (gras + trame + filet)
+   4 montant gras aligné à droite (statistiques, sous-totaux)
+   5 montant aligné à droite (lignes du tableau) · 6 date
+   7 montant gras aligné à droite + filet (division) · 8 texte gras + filet (division) */
+function construireStylesXml(){
+  var numFmts = "<numFmts count=\"1\">"
+    + "<numFmt numFmtId=\"166\" formatCode=\"dd/mm/yyyy\"/>"
+    + "</numFmts>";
+  var fonts = "<fonts count=\"3\">"
+    + "<font><sz val=\"11\"/><name val=\"Calibri\"/></font>"
+    + "<font><b/><sz val=\"11\"/><name val=\"Calibri\"/></font>"
+    + "<font><b/><sz val=\"16\"/><name val=\"Calibri\"/></font>"
+    + "</fonts>";
+  var fills = "<fills count=\"3\">"
+    + "<fill><patternFill patternType=\"none\"/></fill>"
+    + "<fill><patternFill patternType=\"gray125\"/></fill>"
+    + "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFEDEDED\"/><bgColor indexed=\"64\"/></patternFill></fill>"
+    + "</fills>";
+  var borders = "<borders count=\"3\">"
+    + "<border><left/><right/><top/><bottom/><diagonal/></border>"
+    + "<border><left/><right/><top/><bottom style=\"thin\"><color indexed=\"64\"/></bottom><diagonal/></border>"
+    + "<border><left/><right/><top style=\"thin\"><color indexed=\"64\"/></top><bottom/><diagonal/></border>"
+    + "</borders>";
+  var cellStyleXfs = "<cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs>";
+
+  function xf(numFmtId, fontId, fillId, borderId, alignRight){
+    return "<xf numFmtId=\"" + numFmtId + "\" fontId=\"" + fontId + "\" fillId=\"" + fillId + "\" borderId=\"" + borderId + "\" xfId=\"0\""
+      + (numFmtId ? " applyNumberFormat=\"1\"" : "")
+      + (fontId ? " applyFont=\"1\"" : "")
+      + (fillId ? " applyFill=\"1\"" : "")
+      + (borderId ? " applyBorder=\"1\"" : "")
+      + (alignRight ? " applyAlignment=\"1\"" : "")
+      + (alignRight ? "><alignment horizontal=\"right\"/></xf>" : "/>");
+  }
+  var xfs = [
+    xf(0, 0, 0, 0, false),   /* 0 normal */
+    xf(0, 1, 0, 0, false),   /* 1 gras */
+    xf(0, 2, 0, 0, false),   /* 2 titre */
+    xf(0, 1, 2, 1, false),   /* 3 en-tête de tableau */
+    xf(0, 1, 0, 0, true),    /* 4 montant gras, aligné à droite */
+    xf(0, 0, 0, 0, true),    /* 5 montant, aligné à droite */
+    xf(166, 0, 0, 0, false), /* 6 date */
+    xf(0, 1, 0, 2, true),    /* 7 montant gras + filet, aligné à droite */
+    xf(0, 1, 0, 2, false)    /* 8 texte gras + filet (division) */
+  ];
+  var cellXfs = "<cellXfs count=\"" + xfs.length + "\">" + xfs.join("") + "</cellXfs>";
+
+  return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    + "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
+    + numFmts + fonts + fills + borders + cellStyleXfs + cellXfs
+    + "<cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles>"
+    + "</styleSheet>";
+}
+
+/* ---------- construction des lignes de la feuille ---------- */
+var STY_GRAS = 1, STY_TITRE = 2, STY_ENTETE = 3, STY_MONT_G = 4,
+    STY_MONT = 5, STY_DATE = 6, STY_MONT_G_F = 7, STY_GRAS_F = 8;
+
+function construireLignes(d){
+  var lignes = [], fusions = [];
+  var largeurs = [12, 22, 30, 24, 15, 34]; /* A..F, en caractères Excel */
+  var row = 1;
+
+  function ligne(r){ var L = {r: r, cells: []}; lignes.push(L); return L; }
+  function texte(L, c, v, s){ L.cells.push({c: c, v: (v === null || v === undefined) ? "" : String(v), t: "str", s: s || 0}); }
+  /* montants FCFA : texte déjà mis en forme (fmt/fmtF), jamais un nombre + format Excel (voir note ci-dessus) */
+  function montant(L, c, v, s, avecUnite){
+    texte(L, c, avecUnite ? fmtF(v) : fmt(v), (s === undefined ? STY_MONT : s));
+  }
+  function date(L, c, iso, s){
+    var n = serieExcel(iso);
+    if(n === null) return;
+    L.cells.push({c: c, v: n, t: "num", s: (s === undefined ? STY_DATE : s)});
+  }
+
+  /* --- titre --- */
+  var l1 = ligne(row); texte(l1, 0, "MonDjai — Export de données", STY_TITRE);
+  fusions.push("A" + row + ":F" + row);
+  row += 2;
+
+  /* --- période + statistiques --- */
+  var l2 = ligne(row);
+  texte(l2, 0, "Période couverte", STY_GRAS);
+  texte(l2, 2, dateComplete(d.periodeDebut) + " → " + dateComplete(d.periodeFin));
+  fusions.push("A" + row + ":B" + row);
+  fusions.push("C" + row + ":F" + row);
+  row++;
+
+  function stat(label, valeur){
+    var L = ligne(row);
+    texte(L, 0, label, STY_GRAS);
+    montant(L, 4, valeur, STY_MONT_G, true);
+    fusions.push("A" + row + ":D" + row);
+    row++;
+  }
+  stat("Total des revenus", d.totRevenus);
+  stat("Total des dépenses", d.totDepenses);
+  stat("Solde", d.solde);
+  stat("Total épargné (cycle en cours + cycles archivés)", d.totEpargne);
+  row++;
+
+  /* --- section Revenus --- */
+  var lt1 = ligne(row); texte(lt1, 0, "Revenus", STY_GRAS); row++;
+  var lh1 = ligne(row);
+  texte(lh1, 0, "Date", STY_ENTETE); texte(lh1, 1, "Libellé", STY_ENTETE); texte(lh1, 2, "Montant (F CFA)", STY_ENTETE);
+  texte(lh1, 3, "", STY_ENTETE); texte(lh1, 4, "", STY_ENTETE); texte(lh1, 5, "", STY_ENTETE);
+  row++;
+  if(!d.revenus.length){
+    texte(ligne(row), 0, "Aucun revenu enregistré."); row++;
+  }else{
+    d.revenus.forEach(function(r){
+      var L = ligne(row);
+      date(L, 0, r.date);
+      texte(L, 1, r.libelle || "—");
+      montant(L, 2, r.montant);
+      row++;
+    });
+  }
+  row++;
+
+  /* --- section Dépenses --- */
+  var lt2 = ligne(row); texte(lt2, 0, "Dépenses", STY_GRAS); row++;
+  var ligneEnteteDepenses = row; /* pour le volet figé */
+  var lh2 = ligne(row);
+  ["Date", "Cycle", "Rubrique", "Groupe", "Montant (F CFA)", "Note"].forEach(function(t, i){
+    texte(lh2, i, t, STY_ENTETE);
+  });
+  row++;
+  if(!d.depenses.length){
+    texte(ligne(row), 0, "Aucune dépense enregistrée."); row++;
+  }else{
+    d.depenses.forEach(function(dep){
+      var L = ligne(row);
+      date(L, 0, dep.date);
+      date(L, 1, dep.cycle);
+      texte(L, 2, dep.rubrique);
+      texte(L, 3, dep.groupe);
+      montant(L, 4, dep.montant);
+      texte(L, 5, dep.note || "");
+      row++;
+    });
+
+    /* --- sous-total par rubrique --- */
+    d.sousTotaux.forEach(function(st, i){
+      var L = ligne(row);
+      texte(L, 2, st.rubrique, i === 0 ? STY_GRAS_F : STY_GRAS);
+      montant(L, 4, st.montant, i === 0 ? STY_MONT_G_F : STY_MONT_G, true);
+      row++;
+    });
+    var lTot = ligne(row);
+    texte(lTot, 2, "Total", STY_GRAS_F);
+    montant(lTot, 4, d.totDepenses, STY_MONT_G_F, true);
+    row++;
+  }
+
+  return {lignes: lignes, fusions: fusions, largeurs: largeurs, freezeRow: ligneEnteteDepenses, maxRow: row};
+}
+
+/* ---------- xl/worksheets/sheet1.xml ---------- */
+function construireFeuilleXml(res){
+  var largeurs = res.largeurs;
+  var cols = "<cols>";
+  largeurs.forEach(function(w, i){
+    cols += "<col min=\"" + (i + 1) + "\" max=\"" + (i + 1) + "\" width=\"" + w + "\" customWidth=\"1\"/>";
+  });
+  cols += "</cols>";
+
+  var sheetViews = "<sheetViews><sheetView workbookViewId=\"0\">";
+  if(res.freezeRow > 0){
+    sheetViews += "<pane ySplit=\"" + res.freezeRow + "\" topLeftCell=\"A" + (res.freezeRow + 1) + "\" activePane=\"bottomLeft\" state=\"frozen\"/>"
+      + "<selection pane=\"bottomLeft\" activeCell=\"A" + (res.freezeRow + 1) + "\" sqref=\"A" + (res.freezeRow + 1) + "\"/>";
+  }
+  sheetViews += "</sheetView></sheetViews>";
+
+  var rowsXml = "";
+  res.lignes.forEach(function(L){
+    if(!L.cells.length) return;
+    rowsXml += "<row r=\"" + L.r + "\">";
+    L.cells.forEach(function(cell){
+      var ref = celRef(cell.c, L.r);
+      var sAttr = cell.s ? (" s=\"" + cell.s + "\"") : "";
+      if(cell.t === "str"){
+        if(cell.v === ""){
+          if(cell.s) rowsXml += "<c r=\"" + ref + "\"" + sAttr + "/>";
+          return;
+        }
+        rowsXml += "<c r=\"" + ref + "\"" + sAttr + " t=\"inlineStr\"><is><t xml:space=\"preserve\">" + xmlEsc(cell.v) + "</t></is></c>";
+      }else{
+        rowsXml += "<c r=\"" + ref + "\"" + sAttr + "><v>" + cell.v + "</v></c>";
+      }
+    });
+    rowsXml += "</row>";
+  });
+
+  var mergeXml = "";
+  if(res.fusions.length){
+    mergeXml = "<mergeCells count=\"" + res.fusions.length + "\">";
+    res.fusions.forEach(function(m){ mergeXml += "<mergeCell ref=\"" + m + "\"/>"; });
+    mergeXml += "</mergeCells>";
+  }
+
+  return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    + "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
+    + "<dimension ref=\"A1:F" + res.maxRow + "\"/>"
+    + sheetViews + cols
+    + "<sheetData>" + rowsXml + "</sheetData>"
+    + mergeXml
+    + "</worksheet>";
+}
+
+/* ---------- collecte des données (cycle en cours + cycles archivés) ---------- */
+function rubriqueDansListe(id, liste){
+  for(var i = 0; i < liste.length; i++){ if(liste[i].id === id) return liste[i]; }
+  return null;
+}
+function libelleRubriqueExport(id, liste){
+  var r = rubriqueDansListe(id, liste);
+  return r ? ((r.icone ? r.icone + " " : "") + r.nom) : "(rubrique supprimée)";
+}
+function groupeRubriqueExport(id, liste){
+  var r = rubriqueDansListe(id, liste);
+  return r ? (r.groupe || "Autres") : "Autres";
+}
+function donneesExport(){
+  var revenus = [];
+  S.revenus.forEach(function(r){
+    revenus.push({date: r.date || null, libelle: r.libelle || "", montant: Number(r.montant) || 0});
+  });
+  S.cycles.forEach(function(c){
+    (c.revenus || []).forEach(function(r){
+      revenus.push({date: r.date || null, libelle: r.libelle || "", montant: Number(r.montant) || 0});
+    });
+  });
+
+  var depenses = [];
+  S.depenses.forEach(function(dp){
+    depenses.push({
+      date: dp.date, cycle: S.cycleDebut || aujourdhui(),
+      rubrique: libelleRubriqueExport(dp.rubrique, S.rubriques),
+      groupe: groupeRubriqueExport(dp.rubrique, S.rubriques),
+      montant: Number(dp.montant) || 0, note: dp.libelle || ""
+    });
+  });
+  S.cycles.forEach(function(c){
+    (c.depenses || []).forEach(function(dp){
+      depenses.push({
+        date: dp.date, cycle: c.debut,
+        rubrique: libelleRubriqueExport(dp.rubrique, c.rubriques),
+        groupe: groupeRubriqueExport(dp.rubrique, c.rubriques),
+        montant: Number(dp.montant) || 0, note: dp.libelle || ""
+      });
+    });
+  });
+  depenses.sort(function(a, b){
+    if(a.date === b.date) return 0;
+    return a.date < b.date ? 1 : -1; /* plus récent d'abord */
+  });
+
+  var totRevenus = totalRevenus() + S.cycles.reduce(function(t, c){ return t + cycRevenus(c); }, 0);
+  var totDepenses = totalDepense() + S.cycles.reduce(function(t, c){ return t + cycDepense(c); }, 0);
+  var totEpargne = totalEpargne() + S.cycles.reduce(function(t, c){ return t + cycEpargne(c); }, 0);
+
+  var debuts = S.cycles.map(function(c){ return c.debut; });
+  debuts.push(S.cycleDebut || aujourdhui());
+  var periodeDebut = debuts.reduce(function(min, dt){ return (dt < min) ? dt : min; }, debuts[0]);
+
+  var sousTotaux = {}, ordre = [];
+  depenses.forEach(function(dp){
+    if(!sousTotaux.hasOwnProperty(dp.rubrique)){ sousTotaux[dp.rubrique] = 0; ordre.push(dp.rubrique); }
+    sousTotaux[dp.rubrique] += dp.montant;
+  });
+  var listeSousTotaux = ordre.map(function(nom){ return {rubrique: nom, montant: sousTotaux[nom]}; });
+  listeSousTotaux.sort(function(a, b){ return b.montant - a.montant; });
+
+  return {
+    periodeDebut: periodeDebut, periodeFin: aujourdhui(),
+    totRevenus: totRevenus, totDepenses: totDepenses,
+    solde: totRevenus - totDepenses, totEpargne: totEpargne,
+    revenus: revenus, depenses: depenses, sousTotaux: listeSousTotaux
+  };
+}
+
+/* ---------- assemblage du classeur ---------- */
+function construireClasseurExport(){
+  var d = donneesExport();
+  var res = construireLignes(d);
+  var sheetXml = construireFeuilleXml(res);
+  var stylesXml = construireStylesXml();
+
+  var contentTypes = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    + "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">"
+    + "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>"
+    + "<Default Extension=\"xml\" ContentType=\"application/xml\"/>"
+    + "<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>"
+    + "<Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>"
+    + "<Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>"
+    + "<Override PartName=\"/docProps/core.xml\" ContentType=\"application/vnd.openxmlformats-package.core-properties+xml\"/>"
+    + "<Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/>"
+    + "</Types>";
+
+  var relsRoot = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    + "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/>"
+    + "<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties\" Target=\"docProps/core.xml\"/>"
+    + "<Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties\" Target=\"docProps/app.xml\"/>"
+    + "</Relationships>";
+
+  var relsWb = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    + "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
+    + "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/>"
+    + "<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/>"
+    + "</Relationships>";
+
+  var workbookXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    + "<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">"
+    + "<sheets><sheet name=\"Export MonDjai\" sheetId=\"1\" r:id=\"rId1\"/></sheets>"
+    + "</workbook>";
+
+  var coreXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    + "<cp:coreProperties xmlns:cp=\"http://schemas.openxmlformats.org/package/2006/metadata/core-properties\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:dcterms=\"http://purl.org/dc/terms/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"
+    + "<dc:title>Export MonDjai</dc:title><dc:creator>MonDjai</dc:creator>"
+    + "<dcterms:created xsi:type=\"dcterms:W3CDTF\">" + new Date().toISOString() + "</dcterms:created>"
+    + "</cp:coreProperties>";
+
+  var appXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    + "<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\"><Application>MonDjai</Application></Properties>";
+
+  var fichiers = [
+    {nom: "[Content_Types].xml", octets: utf8Octets(contentTypes)},
+    {nom: "_rels/.rels", octets: utf8Octets(relsRoot)},
+    {nom: "xl/workbook.xml", octets: utf8Octets(workbookXml)},
+    {nom: "xl/_rels/workbook.xml.rels", octets: utf8Octets(relsWb)},
+    {nom: "xl/styles.xml", octets: utf8Octets(stylesXml)},
+    {nom: "xl/worksheets/sheet1.xml", octets: utf8Octets(sheetXml)},
+    {nom: "docProps/core.xml", octets: utf8Octets(coreXml)},
+    {nom: "docProps/app.xml", octets: utf8Octets(appXml)}
+  ];
+  return creerZip(fichiers);
+}
+
+/* ---------- bouton « Exporter mes données » (Réglages) ---------- */
+function exporterExcel(){
+  var ok = false;
+  try{
+    var octets = construireClasseurExport();
+    var blob = new Blob([octets], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "mondjai-export-" + aujourdhui() + ".xlsx";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){
+      if(a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1500);
+    ok = true;
+  }catch(e){ ok = false; }
+  if(ok){
+    toast("Export Excel téléchargé ✓");
+  }else{
+    alert("L'export Excel n'a pas pu être créé sur cet appareil. Réessayez depuis le navigateur Chrome.");
+  }
 }
 
 /* ---------- champ montant ---------- */
@@ -1320,6 +1895,18 @@ function vueRevenus(ec, ba){
         l.appendChild(d);
       }
       liste.appendChild(l);
+      /* Sprint 5B — date propre à ce revenu, jamais celle du salaire */
+      if(idx > 0){
+        var fd = el("div", "champ-date");
+        fd.appendChild(el("span", "tiny muted", "Reçu le"));
+        var id_ = document.createElement("input");
+        id_.type = "date"; id_.className = "input-date";
+        id_.value = rev.date || "";
+        id_.setAttribute("aria-label", "Date de réception de " + (rev.libelle || "ce revenu"));
+        id_.addEventListener("change", function(){ rev.date = id_.value || null; sauver(); });
+        fd.appendChild(id_);
+        liste.appendChild(fd);
+      }
     });
   }
   dessinerLignes();
@@ -1332,7 +1919,7 @@ function vueRevenus(ec, ba){
     var b = el("button", null, t);
     b.type = "button";
     b.addEventListener("click", function(){
-      S.revenus.push({id: uid(), libelle: (t === "Autre" ? "" : t), montant: 0});
+      S.revenus.push({id: uid(), libelle: (t === "Autre" ? "" : t), montant: 0, date: aujourdhui()});
       sauver(); menu.hidden = true; dessinerLignes(); majTotal();
       var champs = liste.querySelectorAll(".lib");
       if(t === "Autre" && champs.length) champs[champs.length-1].focus();
@@ -1730,6 +2317,7 @@ document.addEventListener("keydown", function(e){
 function ouvrirDepense(opts){
   opts = opts || {};
   var edition = opts.edit || null;
+  var editionPrevision = edition ? !!opts.prevision : false;
   var etat = {
     rubrique: edition ? edition.rubrique : (opts.rubrique || null),
     montant:  edition ? (Number(edition.montant)||0) : 0,
@@ -1802,7 +2390,7 @@ function ouvrirDepense(opts){
     if(!r){ etat.rubrique = null; dessiner(); return; }
     var ep = estEpargne(r);
     titre.textContent = edition
-      ? (ep ? "Modifier le versement" : "Modifier la dépense")
+      ? (editionPrevision ? "Modifier la prévision" : (ep ? "Modifier le versement" : "Modifier la dépense"))
       : (ep ? "Mettre de côté" : "Nouvelle dépense");
 
     /* rappel de l'enveloppe choisie (retap = changer) */
@@ -1851,7 +2439,8 @@ function ouvrirDepense(opts){
     fL.appendChild(iL);
     body.appendChild(fL);
 
-    /* date : aujourd'hui par défaut, modifiable */
+    /* date : aujourd'hui par défaut, modifiable — Sprint 5B : une date
+       future ne compte pas dans le solde tant qu'elle n'est pas validée */
     var fD = el("div", "field");
     fD.appendChild(el("label", null, "Date"));
     var chips = el("div", "chips");
@@ -1861,6 +2450,8 @@ function ouvrirDepense(opts){
     var iD = document.createElement("input");
     iD.type = "date"; iD.className = "input"; iD.value = etat.date;
     iD.setAttribute("aria-label", "Date de la dépense");
+    var indicPrevision = el("p", "tiny muted");
+    indicPrevision.style.margin = "8px 0 0";
     raccourcis.forEach(function(rc){
       var c = el("button", "chip", rc.lab);
       c.type = "button";
@@ -1869,6 +2460,7 @@ function ouvrirDepense(opts){
         etat.date = rc.val; iD.value = rc.val;
         chips.querySelectorAll(".chip").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
         c.setAttribute("aria-pressed","true");
+        majInfo();
       });
       chips.appendChild(c);
     });
@@ -1877,22 +2469,25 @@ function ouvrirDepense(opts){
       chips.querySelectorAll(".chip").forEach(function(x, i){
         x.setAttribute("aria-pressed", etat.date === raccourcis[i].val ? "true" : "false");
       });
+      majInfo();
     });
     fD.appendChild(chips);
     fD.appendChild(iD);
+    fD.appendChild(indicPrevision);
     body.appendChild(fD);
 
     /* suppression si l'on modifie une dépense existante */
     if(edition){
-      var bSup = el("button", "btn btn-danger", ep ? "Supprimer ce versement" : "Supprimer cette dépense");
+      var bSup = el("button", "btn btn-danger",
+        editionPrevision ? "Supprimer cette prévision" : (ep ? "Supprimer ce versement" : "Supprimer cette dépense"));
       bSup.type = "button";
       bSup.style.marginTop = "18px";
       bSup.addEventListener("click", function(){
         if(confirm("Supprimer cette ligne de " + fmtF(edition.montant) + " ?")){
-          supprimerDepense(edition.id);
+          supprimerDepense(edition.id, editionPrevision);
           fermerFeuille(false);
           render();
-          toast("Dépense supprimée");
+          toast(editionPrevision ? "Prévision supprimée" : "Dépense supprimée");
         }
       });
       body.appendChild(bSup);
@@ -1900,8 +2495,7 @@ function ouvrirDepense(opts){
 
     /* barre de validation */
     var bar = el("div", "sticky"), inn = el("div", "sticky-in");
-    var bOk = el("button", "btn btn-primary", edition ? "Enregistrer les modifications"
-      : (ep ? "Mettre de côté" : "Enregistrer la dépense"));
+    var bOk = el("button", "btn btn-primary", "");
     bOk.type = "button";
     bOk.addEventListener("click", enregistrer);
     inn.appendChild(bOk);
@@ -1913,15 +2507,33 @@ function ouvrirDepense(opts){
     });
 
     function majInfo(){
+      var futur = (etat.date || aujourdhui()) > aujourdhui();
+
+      /* Sprint 5B — une dépense datée dans le futur devient une prévision :
+         elle ne compte pas dans le solde tant qu'elle n'a pas été validée. */
+      if(futur){
+        indicPrevision.textContent = "📌 Cette date n'est pas encore arrivée : ce sera une prévision, elle ne comptera dans votre solde qu'une fois validée le jour venu.";
+        bOk.textContent = edition ? "Enregistrer la prévision" : "Prévoir cette dépense";
+      }else if(editionPrevision){
+        indicPrevision.textContent = "✓ Cette date est passée ou c'est aujourd'hui : en enregistrant, cette prévision devient une dépense réelle et comptera tout de suite dans votre solde.";
+        bOk.textContent = "Valider la dépense";
+      }else{
+        indicPrevision.textContent = "";
+        bOk.textContent = edition ? "Enregistrer les modifications" : (ep ? "Mettre de côté" : "Enregistrer la dépense");
+      }
+
       var affecte = Number(r.montant) || 0;
-      var dejaSansMoi = depenseRub(r.id) - (edition ? (Number(edition.montant)||0) : 0);
-      var apres = dejaSansMoi + (Number(etat.montant)||0);
+      var dejaSansMoi = depenseRub(r.id) - (edition && !editionPrevision ? (Number(edition.montant)||0) : 0);
+      var apres = dejaSansMoi + (futur ? 0 : (Number(etat.montant)||0));
       var restant = affecte - apres;
       var etatC = etatDe(apres, affecte, ep);
       info.className = "info-env " + (affecte <= 0 && !ep ? "" :
         etatC === "rouge" ? "rouge" : etatC === "orange" ? "orange" :
         etatC === "attente" ? "attente" : "vert");
-      if(ep){
+      if(futur){
+        info.className = "info-env";
+        info.textContent = "Une prévision n'affecte pas encore « " + r.nom + " ».";
+      }else if(ep){
         if(affecte <= 0){
           info.textContent = "Aucun objectif fixé ici : tout ce que vous mettez de côté est du gagné.";
         }else if(restant > 0){
@@ -1946,34 +2558,68 @@ function ouvrirDepense(opts){
 
   function enregistrer(){
     if(!(Number(etat.montant) > 0)) return;
+    var futur = (etat.date || aujourdhui()) > aujourdhui();
+    var champs = {
+      rubrique: etat.rubrique,
+      montant: Number(etat.montant) || 0,
+      libelle: (etat.libelle || "").trim(),
+      date: etat.date || aujourdhui()
+    };
+    var messageFinal;
     if(edition){
-      edition.rubrique = etat.rubrique;
-      edition.montant = Number(etat.montant) || 0;
-      edition.libelle = (etat.libelle || "").trim();
-      edition.date = etat.date || aujourdhui();
+      Object.keys(champs).forEach(function(k){ edition[k] = champs[k]; });
+      if(editionPrevision && !futur){
+        /* la prévision est validée : elle devient une dépense réelle */
+        S.previsions = S.previsions.filter(function(x){ return x.id !== edition.id; });
+        S.depenses.push(edition);
+        messageFinal = "Dépense validée ✓";
+      }else if(!editionPrevision && futur){
+        /* la dépense est repoussée dans le futur : elle devient une prévision */
+        S.depenses = S.depenses.filter(function(x){ return x.id !== edition.id; });
+        S.previsions.push(edition);
+        messageFinal = "Déplacée en prévision pour le " + dateLisible(edition.date);
+      }else{
+        messageFinal = "Modification enregistrée";
+      }
     }else{
-      S.depenses.push({
-        id: uid(),
-        rubrique: etat.rubrique,
-        montant: Number(etat.montant) || 0,
-        libelle: (etat.libelle || "").trim(),
-        date: etat.date || aujourdhui(),
-        cree: Date.now()
-      });
+      var obj = champs; obj.id = uid(); obj.cree = Date.now();
+      if(futur){
+        S.previsions.push(obj);
+        messageFinal = "Dépense prévue pour le " + dateLisible(obj.date) + " ✓";
+      }else{
+        S.depenses.push(obj);
+        var rFin = rubriqueParId(obj.rubrique);
+        messageFinal = estEpargne(rFin) ? "Mis de côté ✓ Bravo" : "Dépense enregistrée ✓";
+      }
     }
     sauver();
-    var rFin = rubriqueParId(etat.rubrique);
     fermerFeuille(false);
     render();
-    toast(edition ? "Modification enregistrée"
-        : (estEpargne(rFin) ? "Mis de côté ✓ Bravo" : "Dépense enregistrée ✓"));
+    toast(messageFinal);
   }
 
   dessiner();
 }
 
-function supprimerDepense(id){
-  S.depenses = S.depenses.filter(function(d){ return d.id !== id; });
+/* Sprint 5B — valide une prévision échue : elle devient une dépense réelle
+   avec sa date prévue, sans repasser par la feuille de saisie. */
+function validerPrevision(id){
+  var it = null;
+  S.previsions.forEach(function(d){ if(d.id === id) it = d; });
+  if(!it) return;
+  S.previsions = S.previsions.filter(function(d){ return d.id !== id; });
+  S.depenses.push(it);
+  sauver();
+  render();
+  toast("Dépense validée ✓");
+}
+
+function supprimerDepense(id, estPrevision){
+  if(estPrevision){
+    S.previsions = S.previsions.filter(function(d){ return d.id !== id; });
+  }else{
+    S.depenses = S.depenses.filter(function(d){ return d.id !== id; });
+  }
   sauver();
 }
 
@@ -1990,6 +2636,24 @@ function vueDashboard(ec, ba){
 
   ec.appendChild(el("h1", null, "Bonjour 👋"));
   ec.appendChild(el("p", "sub", "Cycle en cours depuis le " + dateComplete(S.cycleDebut) + "."));
+
+  /* Sprint 5B — rappel des prévisions échues : c'est notre « alarme »,
+     affichée à l'ouverture, sans notification externe (l'app reste
+     100 % hors ligne, sans service de notification à distance). */
+  var previsionsEchues = (S.previsions || []).filter(function(p){ return p.date <= aujourdhui(); });
+  if(previsionsEchues.length){
+    var avP = el("div", "avis");
+    avP.appendChild(el("div", "avis-t",
+      previsionsEchues.length > 1 ? previsionsEchues.length + " prévisions à valider" : "1 prévision à valider"));
+    avP.appendChild(el("p", "avis-p",
+      "Vous aviez prévu " + (previsionsEchues.length > 1 ? "ces dépenses" : "cette dépense")
+      + " — confirmez-les pour qu'elles comptent dans votre solde."));
+    var bVoirP = el("button", "btn btn-primary", "Voir dans le Journal");
+    bVoirP.type = "button";
+    bVoirP.addEventListener("click", function(){ aller("journal"); });
+    avP.appendChild(bVoirP);
+    ec.appendChild(avP);
+  }
 
   /* --- proposition de nouveau cycle au jour de paie (F1) --- */
   if(cycleAEcheance()){
@@ -2183,6 +2847,22 @@ function vueJournal(ec, ba){
     ? fmtF(totalDepense()) + " dépensés sur ce cycle, " + liste.length + (liste.length > 1 ? " lignes." : " ligne.")
     : "Aucune dépense saisie sur ce cycle pour l'instant."));
 
+  /* Sprint 5B — prévisions : dépenses annoncées à l'avance, qui ne
+     comptent dans rien tant qu'elles n'ont pas été validées. */
+  var prevs = (S.previsions || []).slice().sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+  if(prevs.length){
+    var echues = prevs.filter(function(p){ return p.date <= aujourdhui(); }).length;
+    ec.appendChild(el("h2", null, "Prévisions" + (echues ? " · " + echues + " à valider" : "")));
+    var cp = el("div", "card");
+    prevs.forEach(function(p){ cp.appendChild(ligneDepense(p, true, true)); });
+    ec.appendChild(cp);
+    var aidePrev = el("p", "tiny muted",
+      "Une prévision ne compte dans votre solde qu'une fois validée — appuyez sur ✓ le jour venu, ou modifiez-la si le montant change.");
+    aidePrev.style.margin = "8px 0 20px";
+    ec.appendChild(aidePrev);
+  }
+
+  ec.appendChild(el("h2", null, "Dépenses"));
   if(!liste.length){
     var c0 = el("div", "card");
     c0.appendChild(el("div", "vide-msg", "Appuyez sur le bouton « + » pour enregistrer votre première dépense."));
@@ -2302,13 +2982,13 @@ function carteEnveloppe(r, origine){
 }
 
 /* --- une ligne de dépense (modifiable / supprimable) --- */
-function ligneDepense(d, avecRubrique){
+function ligneDepense(d, avecRubrique, estPrevision){
   var r = rubriqueParId(d.rubrique);
   var ligne = el("div", "dep");
 
   var main = el("button", "dep-main");
   main.type = "button";
-  main.setAttribute("aria-label", "Modifier cette dépense");
+  main.setAttribute("aria-label", estPrevision ? "Modifier cette prévision" : "Modifier cette dépense");
   var ic = el("span", "ico", r ? r.icone : "💸");
   if(r){
     ic.style.background = "rgba(255,255,255,.05)";
@@ -2317,23 +2997,35 @@ function ligneDepense(d, avecRubrique){
   main.appendChild(ic);
   var txt = el("div", "d-txt");
   txt.appendChild(el("div", "d-lib", d.libelle || (r ? r.nom : "Dépense")));
-  var sous = dateLisible(d.date);
+  var sous = estPrevision ? "Prévue le " + dateLisible(d.date) : dateLisible(d.date);
   if(avecRubrique && r && d.libelle) sous += " · " + r.nom;
   txt.appendChild(el("div", "d-date", sous));
   main.appendChild(txt);
   main.appendChild(el("div", "d-mont", fmtF(d.montant)));
-  main.addEventListener("click", function(){ ouvrirDepense({edit: d}); });
+  main.addEventListener("click", function(){ ouvrirDepense({edit: d, prevision: !!estPrevision}); });
   ligne.appendChild(main);
+
+  /* Sprint 5B — prévision échue : validation en un tap, sans repasser
+     par la feuille de saisie */
+  if(estPrevision && d.date <= aujourdhui()){
+    var bVal = el("button", "del", "✓");
+    bVal.type = "button";
+    bVal.title = "Valider maintenant";
+    bVal.setAttribute("aria-label", "Valider cette prévision de " + fmt(d.montant) + " francs maintenant");
+    bVal.style.color = "var(--green)";
+    bVal.addEventListener("click", function(){ validerPrevision(d.id); });
+    ligne.appendChild(bVal);
+  }
 
   var sup = el("button", "del", "×");
   sup.type = "button";
   sup.title = "Supprimer";
-  sup.setAttribute("aria-label", "Supprimer cette dépense de " + fmt(d.montant) + " francs");
+  sup.setAttribute("aria-label", "Supprimer cette " + (estPrevision ? "prévision" : "dépense") + " de " + fmt(d.montant) + " francs");
   sup.addEventListener("click", function(){
-    if(confirm("Supprimer cette dépense de " + fmtF(d.montant) + " ?")){
-      supprimerDepense(d.id);
+    if(confirm("Supprimer cette ligne de " + fmtF(d.montant) + " ?")){
+      supprimerDepense(d.id, !!estPrevision);
       render();
-      toast("Dépense supprimée");
+      toast(estPrevision ? "Prévision supprimée" : "Dépense supprimée");
     }
   });
   ligne.appendChild(sup);
@@ -2480,6 +3172,20 @@ function vueNouveauCycle(ec, ba){
         l.appendChild(d);
       }
       liste.appendChild(l);
+      /* Sprint 5B — date propre à ce revenu, jamais celle du salaire par
+         défaut : « Autre / Prime / Activités » n'arrivent pas forcément
+         le jour de la paie. */
+      if(idx > 0){
+        var fd = el("div", "champ-date");
+        fd.appendChild(el("span", "tiny muted", "Reçu le"));
+        var id_ = document.createElement("input");
+        id_.type = "date"; id_.className = "input-date";
+        id_.value = rev.date || "";
+        id_.setAttribute("aria-label", "Date de réception de " + (rev.libelle || "ce revenu"));
+        id_.addEventListener("change", function(){ rev.date = id_.value || null; });
+        fd.appendChild(id_);
+        liste.appendChild(fd);
+      }
     });
   }
   dessinerRevenus();
@@ -2492,7 +3198,7 @@ function vueNouveauCycle(ec, ba){
     var bt = el("button", null, t);
     bt.type = "button";
     bt.addEventListener("click", function(){
-      b.revenus.push({id: uid(), libelle: (t === "Autre" ? "" : t), montant: 0});
+      b.revenus.push({id: uid(), libelle: (t === "Autre" ? "" : t), montant: 0, date: aujourdhui()});
       menu.hidden = true; dessinerRevenus(); maj();
     });
     menu.appendChild(bt);
@@ -2506,6 +3212,13 @@ function vueNouveauCycle(ec, ba){
   var totVal = el("span", "big");
   tot.appendChild(totVal);
   ec.appendChild(tot);
+
+  /* Sprint 5B — si le total a changé par rapport au cycle précédent,
+     on propose (sans l'imposer) de recalculer la répartition :
+     charges fixes inchangées, épargne proportionnelle, le reste ajusté. */
+  var avisRecalc = el("div", "avis");
+  avisRecalc.hidden = true;
+  ec.appendChild(avisRecalc);
 
   /* --- répartition du nouveau cycle, par groupe --- */
   ec.appendChild(el("h2", null, "Répartition"));
@@ -2600,6 +3313,35 @@ function vueNouveauCycle(ec, ba){
       banniere.hidden = true;
     }
     bOk.disabled = !(t > 0);
+
+    /* Sprint 5B — proposition de recalcul si les revenus ont changé */
+    var changement = b.totalOrigine > 0 && t !== b.totalOrigine;
+    var dejaDecide = b.derniereDecisionTotal === t;
+    if(changement && !dejaDecide){
+      avisRecalc.hidden = false;
+      avisRecalc.innerHTML = "";
+      var signe = t > b.totalOrigine ? "+" : "";
+      avisRecalc.appendChild(el("div", "avis-t", "Vos revenus ont changé"));
+      avisRecalc.appendChild(el("p", "avis-p",
+        fmtF(b.totalOrigine) + " → " + fmtF(t) + " (" + signe + fmtF(t - b.totalOrigine) + "). "
+        + "Recalculer la répartition ? Les charges fixes restent identiques, l'épargne suit vos revenus, le reste s'ajuste."));
+      var rBtns = el("div", "row-btns");
+      var bGarder = el("button", "btn btn-ghost", "Garder mes montants"); bGarder.type = "button";
+      bGarder.addEventListener("click", function(){
+        b.derniereDecisionTotal = t; avisRecalc.hidden = true;
+      });
+      var bRecalc = el("button", "btn btn-primary", "Recalculer"); bRecalc.type = "button";
+      bRecalc.addEventListener("click", function(){
+        recalculerRepartitionAuto();
+        b.derniereDecisionTotal = t;
+        aller("nouveauCycle"); /* on redessine l'écran : les champs affichent les nouveaux montants */
+        toast("Répartition recalculée ✓");
+      });
+      rBtns.appendChild(bGarder); rBtns.appendChild(bRecalc);
+      avisRecalc.appendChild(rBtns);
+    }else{
+      avisRecalc.hidden = true;
+    }
   }
   maj();
 }
@@ -3338,6 +4080,26 @@ function vueReglages(ec, ba){
   noteS.style.margin = "10px 0 0";
   ec.appendChild(noteS);
 
+  /* --- Sprint 5B (F7bis) : export Excel, à côté de la sauvegarde
+     ci-dessus mais bien distinct — un rapport à LIRE, qui ne
+     remplace pas la sauvegarde JSON pour restaurer les données. */
+  var expC = el("div", "card");
+  expC.style.marginTop = "12px";
+  var expL = el("div");
+  expL.style.display = "flex"; expL.style.justifyContent = "space-between"; expL.style.alignItems = "baseline";
+  expL.appendChild(el("span", null, "Rapport Excel"));
+  expL.appendChild(el("span", "muted tiny", "lecture seule"));
+  expC.appendChild(expL);
+  var expTxt = el("p", "tiny muted",
+    "Revenus, dépenses et sous-totaux dans un fichier .xlsx à ouvrir dans Excel ou Google Sheets. "
+    + "Il ne remplace pas la sauvegarde ci-dessus : elle seule permet de restaurer vos données.");
+  expTxt.style.margin = "8px 0 12px";
+  expC.appendChild(expTxt);
+  var bExp = el("button", "btn", "📊 Exporter mes données"); bExp.type = "button";
+  bExp.addEventListener("click", exporterExcel);
+  expC.appendChild(bExp);
+  ec.appendChild(expC);
+
   /* --- historique et à propos --- */
   ec.appendChild(el("h2", null, "Plus loin"));
   var n = S.cycles.length;
@@ -3425,7 +4187,7 @@ function vueApropos(ec, ba){
     "Revers de la médaille : si vous effacez les données du navigateur ou changez de téléphone, elles s'en vont avec. Le fichier de sauvegarde est votre seule copie — prenez l'habitude de le faire à chaque paie."));
   ec.appendChild(c3);
 
-  var v = el("p", "tiny muted", "MonDjai — version 5A (Sprints 1 à 5A) · FCFA · français · hors ligne.");
+  var v = el("p", "tiny muted", "MonDjai — version 5B (Sprints 1 à 5B, logique) · FCFA · français · hors ligne.");
   v.style.margin = "16px 0 0";
   ec.appendChild(v);
   var d = el("p", "tiny muted", "« Lève-toi et avance. »");
