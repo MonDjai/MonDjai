@@ -9,12 +9,12 @@
    ╔══════════════════════════════════════════════════════════╗
    ║  POUR PUBLIER UNE NOUVELLE VERSION : remplacer index.html ║
    ║  ET sw.js sur GitHub, en changeant seulement ce numéro    ║
-   ║  (10 → 11 → 12…), le même que VERSION_APP dans index.html.   ║
+   ║  (11 → 12 → 13…), le même que VERSION_APP dans index.html.   ║
    ║  Les téléphones se mettent à jour seuls à l'ouverture,    ║
    ║  sans réinstallation, sans toucher aux données.           ║
    ╚══════════════════════════════════════════════════════════╝
    ============================================================== */
-var VERSION_CACHE = "10";
+var VERSION_CACHE = "14";
 
 /* Les caches de Salaire commencent par ce préfixe. Seuls ceux-là, et
    ceux des versions 1 à 5B (nommés « mondjai-v1 » à « mondjai-v5 »),
